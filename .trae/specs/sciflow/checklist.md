@@ -1,0 +1,10 @@
+- [x] Checkpoint 1: 项目基础架构搭建完成，CLI 可正常启动
+- [x] Checkpoint 2: 文献调研模块可返回文献列表
+- [x] Checkpoint 3: Zotero 同步模块可添加文献
+- [x] Checkpoint 4: 飞书文档生成模块可创建技术文档
+- [x] Checkpoint 5: Python 数据处理模块可执行脚本
+- [x] Checkpoint 6: Word 文档生成模块可生成论文初稿
+- [x] Checkpoint 7: 全流程编排可串联所有环节
+- [x] Checkpoint 8: Demo 演示脚本可完整运行
+- [x] Checkpoint 9: README 使用说明完整
+- [x] Checkpoint 10: 所有命令可用 --help 查看帮助

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sciflow"
+version = "0.1.0"
+description = "科研全流程 Agent 编排器 - 用自然语言串联文献管理、技术文档、数据分析、论文撰写"
+requires-python = ">=3.10"
+authors = [{ name = "SciFlow Team", email = "sciflow@example.com" }]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "click>=8.0",
+    "pydantic>=2.0",
+    "python-docx>=1.1",
+    "requests>=2.31",
+]
+
+[project.scripts]
+sciflow = "sci_flow.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sci_flow*"]
