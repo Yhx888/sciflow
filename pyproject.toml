@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sciflow"
-version = "0.1.0"
-description = "科研全流程 Agent 编排器 - 用自然语言串联文献管理、技术文档、数据分析、论文撰写"
+version = "1.0.0"
+description = "SciFlow - AI驱动的科研全流程智能工作台 | 文献调研·数据分析·论文撰写一体化"
 requires-python = ">=3.10"
 authors = [{ name = "SciFlow Team", email = "sciflow@example.com" }]
 license = "MIT"
@@ -15,17 +15,45 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
 ]
 dependencies = [
     "click>=8.0",
     "pydantic>=2.0",
+    "pydantic-settings>=2.0",
     "python-docx>=1.1",
     "requests>=2.31",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "sse-starlette>=1.8.0",
+    "aiofiles>=23.0.0",
+    "httpx>=0.25.0",
+    "colorama>=0.4.6",
+]
+
+[project.optional-dependencies]
+desktop = [
+    "pywebview>=5.0",
+]
+dev = [
+    "pyinstaller>=6.0",
+    "black>=23.0",
 ]
 
 [project.scripts]
 sciflow = "sci_flow.cli:cli"
+sciflow-app = "sci_flow.desktop.launcher:main"
+sciflow-server = "sci_flow.server.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["sci_flow*"]
+
+[tool.setuptools.package-data]
+sci_flow = ["web/**/*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]

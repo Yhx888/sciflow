@@ -1,0 +1,3172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciFlow - AI科研助手</title>
+    
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
+    
+    <style>
+        /* ============================================
+           CSS Variables - Theme System
+           ============================================ */
+        :root {
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-2xl: 32px;
+            --spacing-3xl: 48px;
+            
+            /* Border Radius - Apple Style */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-2xl: 20px;
+            --radius-full: 9999px;
+            
+            /* Transitions */
+            --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+            --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --duration-slow: 400ms;
+            
+            /* Z-indices */
+            --z-sidebar: 100;
+            --z-dropdown: 200;
+            --z-modal: 1000;
+            --z-tooltip: 1500;
+        }
+        
+        /* Light Theme (Default) */
+        [data-theme="light"] {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F9F9F9;
+            --bg-tertiary: #F5F5F7;
+            --bg-elevated: #FFFFFF;
+            --bg-hover: rgba(0, 0, 0, 0.04);
+            --bg-active: rgba(0, 0, 0, 0.08);
+            
+            --text-primary: #1D1D1F;
+            --text-secondary: #6E6E73;
+            --text-tertiary: #86868B;
+            --text-quaternary: #AEAEB2;
+            --text-inverse: #FFFFFF;
+            
+            --border: rgba(0, 0, 0, 0.08);
+            --border-strong: rgba(0, 0, 0, 0.12);
+            
+            --accent: #007AFF;
+            --accent-hover: #0056CC;
+            --accent-light: rgba(0, 122, 255, 0.1);
+            --accent-contrast: #FFFFFF;
+            
+            --success: #34C759;
+            --success-light: rgba(52, 199, 89, 0.1);
+            --warning: #FF9500;
+            --warning-light: rgba(255, 149, 0, 0.1);
+            --error: #FF3B30;
+            --error-light: rgba(255, 59, 48, 0.1);
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+            
+            --sidebar-width: 280px;
+            --right-sidebar-width: 240px;
+            --chat-input-max-width: 768px;
+        }
+        
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #1A1A1C;
+            --bg-secondary: #202022;
+            --bg-tertiary: #2A2A2D;
+            --bg-elevated: #2C2C2E;
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --bg-active: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #F5F5F7;
+            --text-secondary: rgba(255, 255, 255, 0.72);
+            --text-tertiary: rgba(255, 255, 255, 0.48);
+            --text-quaternary: rgba(255, 255, 255, 0.3);
+            --text-inverse: #1D1D1F;
+            
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.12);
+            
+            --accent: #0A84FF;
+            --accent-hover: #409CFF;
+            --accent-light: rgba(10, 132, 255, 0.15);
+            --accent-contrast: #FFFFFF;
+            
+            --success: #30D158;
+            --success-light: rgba(48, 209, 88, 0.15);
+            --warning: #FF9F0A;
+            --warning-light: rgba(255, 159, 10, 0.15);
+            --error: #FF453A;
+            --error-light: rgba(255, 69, 58, 0.15);
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        
+        /* ============================================
+           Reset & Base
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow: hidden;
+            transition: background var(--duration-slow) var(--ease-out),
+                        color var(--duration-slow) var(--ease-out);
+        }
+        
+        button {
+            font-family: inherit;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: inherit;
+            font-size: inherit;
+        }
+        
+        input, textarea {
+            font-family: inherit;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+            outline: none;
+        }
+        
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        /* Custom Scrollbar - macOS Style */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-quaternary);
+            border-radius: var(--radius-full);
+            opacity: 0;
+            transition: background var(--duration-fast) var(--ease-out);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+        
+        *:hover::-webkit-scrollbar-thumb {
+            opacity: 1;
+        }
+        
+        /* ============================================
+           Layout
+           ============================================ */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+        
+        /* ============================================
+           Sidebar (Left)
+           ============================================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            height: 100%;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--duration-slow) var(--ease-out),
+                        background var(--duration-slow) var(--ease-out);
+            z-index: var(--z-sidebar);
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            margin-left: calc(-1 * var(--sidebar-width));
+        }
+        
+        .sidebar-header {
+            padding: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: -0.02em;
+        }
+        
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent) 0%, #5856D6 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .btn-new-project {
+            width: 100%;
+            margin: var(--spacing-lg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .btn-new-project:hover {
+            background: var(--bg-hover);
+            transform: scale(1.01);
+        }
+        
+        .btn-new-project:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-new-project .plus-icon {
+            font-size: 18px;
+            color: var(--accent);
+        }
+        
+        .sidebar-projects {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 var(--spacing-sm);
+        }
+        
+        .projects-label {
+            padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+        
+        .project-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease-out);
+            margin-bottom: 2px;
+        }
+        
+        .project-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .project-item.active {
+            background: var(--accent-light);
+        }
+        
+        .project-item.active .project-title {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .project-icon {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .project-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .project-title {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .project-date {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+        
+        .sidebar-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .footer-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) var(--ease-out);
+            font-size: 18px;
+        }
+        
+        .footer-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: auto;
+            cursor: pointer;
+            transition: transform var(--duration-fast) var(--ease-out);
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            left: var(--sidebar-width);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 48px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: calc(var(--z-sidebar) - 1);
+            transition: all var(--duration-normal) var(--ease-out);
+            color: var(--text-tertiary);
+        }
+        
+        .sidebar.collapsed + .sidebar-toggle {
+            left: 0;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* ============================================
+           Main Content
+           ============================================ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+            background: var(--bg-primary);
+            transition: background var(--duration-slow) var(--ease-out);
+        }
+        
+        /* ============================================
+           Welcome Screen (State A)
+           ============================================ */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-3xl);
+            animation: fadeInUp var(--duration-slow) var(--ease-out);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: var(--spacing-xl);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .welcome-title {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--spacing-md);
+            text-align: center;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .welcome-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 500px;
+            margin-bottom: var(--spacing-3xl);
+            line-height: 1.6;
+        }
+        
+        .welcome-input-container {
+            width: 100%;
+            max-width: var(--chat-input-max-width);
+            position: relative;
+            margin-bottom: var(--spacing-3xl);
+        }
+        
+        .chat-input-wrapper {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: flex-end;
+            gap: var(--spacing-sm);
+            box-shadow: var(--shadow-md);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .chat-input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg), 0 0 0 3px var(--accent-light);
+        }
+        
+        .chat-input {
+            flex: 1;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+            line-height: 1.5;
+            padding: var(--spacing-xs) 0;
+            font-size: 16px;
+        }
+        
+        .chat-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .input-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .input-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: var(--accent);
+            color: var(--accent-contrast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .send-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .send-btn:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-quaternary);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quick-start-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-md);
+            max-width: var(--chat-input-max-width);
+            width: 100%;
+        }
+        
+        .quick-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease-out);
+            text-align: left;
+        }
+        
+        .quick-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .quick-card:active {
+            transform: translateY(0);
+        }
+        
+        .quick-card-icon {
+            font-size: 24px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .quick-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .quick-card-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            line-height: 1.4;
+        }
+        
+        .welcome-footer {
+            position: absolute;
+            bottom: var(--spacing-xl);
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+        
+        /* ============================================
+           Workspace (State B)
+           ============================================ */
+        .workspace {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .workspace.active {
+            display: flex;
+        }
+        
+        .workspace-header {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-primary);
+            transition: background var(--duration-slow) var(--ease-out);
+        }
+        
+        .workspace-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .workspace-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            background: transparent;
+            border: none;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            max-width: fit-content;
+        }
+        
+        .workspace-title:hover {
+            background: var(--bg-hover);
+        }
+        
+        .workflow-progress {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .step-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--radius-full);
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+        
+        .progress-step.completed .step-dot {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .progress-step.active .step-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-light); }
+            50% { box-shadow: 0 0 0 6px transparent; }
+        }
+        
+        .step-label {
+            white-space: nowrap;
+            display: none;
+        }
+        
+        @media (min-width: 1024px) {
+            .step-label {
+                display: inline;
+            }
+        }
+        
+        .step-connector {
+            width: 24px;
+            height: 2px;
+            background: var(--border);
+            transition: background var(--duration-normal) var(--ease-out);
+        }
+        
+        .progress-step.completed + .step-connector {
+            background: var(--success);
+        }
+        
+        .progress-percent {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 36px;
+            text-align: right;
+        }
+        
+        .workspace-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) var(--ease-out);
+            font-size: 18px;
+        }
+        
+        .icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .workspace-tabs {
+            display: flex;
+            padding: 0 var(--spacing-xl);
+            border-bottom: 1px solid var(--border);
+            gap: var(--spacing-xs);
+            background: var(--bg-primary);
+        }
+        
+        .tab-btn {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .tab-btn:hover {
+            color: var(--text-secondary);
+        }
+        
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        
+        /* Tab Panels */
+        .tab-panels {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .tab-panel {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tab-panel.active {
+            display: flex;
+        }
+        
+        /* Chat Area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+        
+        .message {
+            display: flex;
+            gap: var(--spacing-md);
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            animation: messageIn var(--duration-normal) var(--ease-out);
+        }
+        
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--accent) 0%, #5856D6 100%);
+            color: white;
+        }
+        
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .message-bubble {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        
+        .message.user .message-bubble {
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: var(--radius-sm);
+        }
+        
+        .message.assistant .message-bubble {
+            background: transparent;
+            padding: 0;
+        }
+        
+        .message.assistant .message-bubble p {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .message.assistant .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message.assistant .message-bubble pre {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            overflow-x: auto;
+            margin: var(--spacing-md) 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .message.assistant .message-bubble code {
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .message.assistant .message-bubble pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .message.assistant .message-bubble ul,
+        .message.assistant .message-bubble ol {
+            padding-left: var(--spacing-xl);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .message.assistant .message-bubble li {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .message.assistant .message-bubble h1,
+        .message.assistant .message-bubble h2,
+        .message.assistant .message-bubble h3 {
+            margin: var(--spacing-lg) 0 var(--spacing-md);
+            font-weight: 600;
+        }
+        
+        .message.assistant .message-bubble h1 { font-size: 24px; }
+        .message.assistant .message-bubble h2 { font-size: 20px; }
+        .message.assistant .message-bubble h3 { font-size: 17px; }
+        
+        /* Tool Call Card */
+        .tool-call-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .tool-call-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .tool-call-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .tool-call-info {
+            flex: 1;
+        }
+        
+        .tool-call-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .tool-call-status {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .tool-call-status.running {
+            color: var(--accent);
+        }
+        
+        .tool-call-status.completed {
+            color: var(--success);
+        }
+        
+        .tool-call-progress {
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .tool-call-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            transition: width var(--duration-normal) var(--ease-out);
+            width: 0%;
+        }
+        
+        .tool-call-result {
+            display: none;
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .tool-call-card.expanded .tool-call-result {
+            display: block;
+        }
+        
+        .tool-call-toggle {
+            font-size: 12px;
+            color: var(--accent);
+            cursor: pointer;
+            margin-top: var(--spacing-sm);
+            display: inline-block;
+        }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: var(--spacing-md) 0;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: var(--text-tertiary);
+            animation: typingBounce 1.4s ease-in-out infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+        
+        /* Chat Input Area */
+        .chat-input-area {
+            padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+            border-top: 1px solid var(--border);
+            background: var(--bg-primary);
+        }
+        
+        .chat-input-container {
+            max-width: var(--chat-input-max-width);
+            margin: 0 auto;
+        }
+        
+        .chat-input-hint {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: var(--spacing-md);
+        }
+        
+        /* Literature Panel */
+        .literature-panel {
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+        }
+        
+        .literature-toolbar {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .btn-secondary {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--duration-fast) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+        
+        .literature-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .literature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .literature-card:hover {
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .literature-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.4;
+        }
+        
+        .literature-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+        
+        .literature-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .literature-citations {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .literature-abstract {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-md);
+            display: none;
+        }
+        
+        .literature-card.expanded .literature-abstract {
+            display: block;
+        }
+        
+        .literature-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+        
+        .literature-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .literature-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .literature-btn.primary {
+            color: var(--accent);
+        }
+        
+        /* Tools Panel - Outline, Mindmap, etc. */
+        .tools-panel {
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+        }
+        
+        .outline-item {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 14px;
+        }
+        
+        .outline-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .outline-level {
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 24px;
+        }
+        
+        .outline-children {
+            padding-left: var(--spacing-xl);
+        }
+        
+        /* Experiment Cards */
+        .experiment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .experiment-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+        
+        .experiment-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .experiment-item {
+            font-size: 13px;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .experiment-item:last-child {
+            border-bottom: none;
+        }
+        
+        .experiment-label {
+            color: var(--text-tertiary);
+        }
+        
+        .experiment-value {
+            font-weight: 500;
+        }
+        
+        /* Report Preview */
+        .report-preview {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-3xl);
+            min-height: 400px;
+            line-height: 1.8;
+        }
+        
+        /* ============================================
+           Right Sidebar (Workflow Visualization)
+           ============================================ */
+        .right-sidebar {
+            width: var(--right-sidebar-width);
+            min-width: var(--right-sidebar-width);
+            height: 100%;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            display: none;
+            transition: transform var(--duration-slow) var(--ease-out),
+                        background var(--duration-slow) var(--ease-out);
+        }
+        
+        .right-sidebar.visible {
+            display: block;
+        }
+        
+        @media (min-width: 1280px) {
+            .right-sidebar.visible {
+                display: block;
+            }
+        }
+        
+        .right-sidebar-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .workflow-visual {
+            position: relative;
+            padding-left: var(--spacing-lg);
+        }
+        
+        .workflow-visual::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: var(--border);
+        }
+        
+        .workflow-node {
+            position: relative;
+            padding-bottom: var(--spacing-xl);
+            padding-left: var(--spacing-lg);
+        }
+        
+        .workflow-node:last-child {
+            padding-bottom: 0;
+        }
+        
+        .node-dot {
+            position: absolute;
+            left: -17px;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: var(--radius-full);
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            z-index: 1;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+        
+        .workflow-node.completed .node-dot {
+            background: var(--success);
+            border-color: var(--success);
+        }
+        
+        .workflow-node.active .node-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .workflow-node.error .node-dot {
+            background: var(--error);
+            border-color: var(--error);
+        }
+        
+        .node-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .workflow-node.pending .node-label {
+            color: var(--text-tertiary);
+        }
+        
+        .node-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+        
+        /* ============================================
+           Settings Modal
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-modal);
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 640px;
+            max-height: 80vh;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95) translateY(20px);
+            transition: transform var(--duration-normal) var(--ease-out);
+            overflow: hidden;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-header {
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) var(--ease-out);
+            font-size: 20px;
+        }
+        
+        .modal-close:hover {
+            background: var(--bg-hover);
+        }
+        
+        .modal-tabs {
+            display: flex;
+            padding: 0 var(--spacing-xl);
+            border-bottom: 1px solid var(--border);
+            gap: var(--spacing-xl);
+        }
+        
+        .modal-tab {
+            padding: var(--spacing-md) 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .modal-tab:hover {
+            color: var(--text-secondary);
+        }
+        
+        .modal-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-xl);
+        }
+        
+        .modal-panel {
+            display: none;
+        }
+        
+        .modal-panel.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            background: var(--bg-elevated);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-quaternary);
+        }
+        
+        .input-with-action {
+            position: relative;
+        }
+        
+        .input-with-action .form-input {
+            padding-right: 44px;
+        }
+        
+        .input-action-btn {
+            position: absolute;
+            right: var(--spacing-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .input-action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .test-result {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            display: none;
+        }
+        
+        .test-result.success {
+            display: block;
+            background: var(--success-light);
+            color: var(--success);
+        }
+        
+        .test-result.error {
+            display: block;
+            background: var(--error-light);
+            color: var(--error);
+        }
+        
+        .modal-footer {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+        }
+        
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--bg-hover);
+        }
+        
+        /* Theme Toggle */
+        .theme-options {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+        
+        .theme-option {
+            flex: 1;
+            padding: var(--spacing-lg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+        
+        .theme-option:hover {
+            border-color: var(--border-strong);
+        }
+        
+        .theme-option.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        
+        .theme-icon {
+            font-size: 32px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .theme-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* About Section */
+        .about-info {
+            text-align: center;
+            padding: var(--spacing-xl) 0;
+        }
+        
+        .about-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent) 0%, #5856D6 100%);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 auto var(--spacing-lg);
+        }
+        
+        .about-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .about-version {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .about-links {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-lg);
+        }
+        
+        .about-link {
+            font-size: 14px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        /* ============================================
+           Page Load Animation
+           ============================================ */
+        .app-container > * {
+            animation: slideIn var(--duration-slow) var(--ease-out);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .sidebar {
+            animation-name: slideInLeft;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* ============================================
+           Responsive Design
+           ============================================ */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 100vw;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: var(--z-modal);
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+            
+            .quick-start-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .right-sidebar {
+                display: none !important;
+            }
+            
+            .welcome-title {
+                font-size: 28px;
+            }
+            
+            .workspace-tabs {
+                overflow-x: auto;
+                padding: 0 var(--spacing-md);
+            }
+            
+            .chat-messages {
+                padding: var(--spacing-lg) var(--spacing-md);
+            }
+            
+            .chat-input-area {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        /* ============================================
+           Utility Classes
+           ============================================ */
+        .hidden {
+            display: none !important;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .gap-sm {
+            gap: var(--spacing-sm);
+        }
+        
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+        
+        .text-tertiary {
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">S</div>
+                    <span>SciFlow</span>
+                </div>
+            </div>
+            
+            <button class="btn-new-project" onclick="app.createNewProject()">
+                <span class="plus-icon">+</span>
+                <span>新建项目</span>
+            </button>
+            
+            <div class="sidebar-projects">
+                <div class="projects-label">最近项目</div>
+                <div id="projectList">
+                    <div class="project-item" onclick="app.openProject('demo')">
+                        <span class="project-icon">🔬</span>
+                        <div class="project-info">
+                            <div class="project-title">大语言模型推理优化</div>
+                            <div class="project-date">今天 14:30</div>
+                        </div>
+                    </div>
+                    <div class="project-item">
+                        <span class="project-icon">📄</span>
+                        <div class="project-info">
+                            <div class="project-title">Transformer架构综述</div>
+                            <div class="project-date">昨天</div>
+                        </div>
+                    </div>
+                    <div class="project-item">
+                        <span class="project-icon">🧪</span>
+                        <div class="project-info">
+                            <div class="project-title">强化学习实验设计</div>
+                            <div class="project-date">3天前</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="footer-btn" onclick="app.toggleTheme()" title="切换主题" id="themeBtn">
+                    🌙
+                </button>
+                <button class="footer-btn" onclick="app.openSettings()" title="设置">
+                    ⚙️
+                </button>
+                <div class="user-avatar" title="用户">U</div>
+            </div>
+        </aside>
+        
+        <button class="sidebar-toggle" onclick="app.toggleSidebar()" id="sidebarToggle">
+            ‹
+        </button>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome Screen (State A) -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">🧬</div>
+                <h1 class="welcome-title">欢迎使用 SciFlow</h1>
+                <p class="welcome-subtitle">你的AI科研助手，从文献调研到论文撰写，<br>让科研工作流更高效</p>
+                
+                <div class="welcome-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            class="chat-input" 
+                            id="welcomeInput"
+                            placeholder="描述你的研究方向，例如：大语言模型推理优化..."
+                            rows="1"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();app.sendWelcomeMessage();}"
+                            oninput="app.autoResize(this)"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button class="send-btn" onclick="app.sendWelcomeMessage()" id="welcomeSendBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-start-cards">
+                    <button class="quick-card" onclick="app.quickStart('literature')">
+                        <div class="quick-card-icon">🔍</div>
+                        <div class="quick-card-title">文献调研</div>
+                        <div class="quick-card-desc">自动检索、总结相关领域文献</div>
+                    </button>
+                    <button class="quick-card" onclick="app.quickStart('writing')">
+                        <div class="quick-card-icon">📝</div>
+                        <div class="quick-card-title">论文写作</div>
+                        <div class="quick-card-desc">辅助撰写各章节内容</div>
+                    </button>
+                    <button class="quick-card" onclick="app.quickStart('experiment')">
+                        <div class="quick-card-icon">🧪</div>
+                        <div class="quick-card-title">实验设计</div>
+                        <div class="quick-card-desc">设计实验方案、基准对比</div>
+                    </button>
+                    <button class="quick-card" onclick="app.quickStart('analysis')">
+                        <div class="quick-card-icon">📊</div>
+                        <div class="quick-card-title">数据分析</div>
+                        <div class="quick-card-desc">可视化分析、统计检验</div>
+                    </button>
+                </div>
+                
+                <div class="welcome-footer">
+                    Powered by LLM · 支持 OpenAI / Anthropic / DeepSeek 等
+                </div>
+            </div>
+            
+            <!-- Workspace (State B) -->
+            <div class="workspace" id="workspace">
+                <header class="workspace-header">
+                    <div class="workspace-title-section">
+                        <input type="text" class="workspace-title" id="projectTitle" value="未命名项目" />
+                        <div class="workflow-progress">
+                            <div class="progress-steps" id="progressSteps">
+                            </div>
+                            <span class="progress-percent" id="progressPercent">0%</span>
+                        </div>
+                    </div>
+                    <div class="workspace-actions">
+                        <button class="icon-btn" title="导出">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button class="icon-btn" title="分享">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                        </button>
+                        <button class="icon-btn" onclick="app.toggleRightSidebar()" title="工作流面板">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="15" y1="3" x2="15" y2="21"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="workspace-tabs">
+                    <button class="tab-btn active" data-tab="chat" onclick="app.switchTab('chat')">💬 对话</button>
+                    <button class="tab-btn" data-tab="literature" onclick="app.switchTab('literature')">📚 文献</button>
+                    <button class="tab-btn" data-tab="outline" onclick="app.switchTab('outline')">📋 大纲</button>
+                    <button class="tab-btn" data-tab="experiment" onclick="app.switchTab('experiment')">🔬 实验</button>
+                    <button class="tab-btn" data-tab="report" onclick="app.switchTab('report')">📄 报告</button>
+                </div>
+                
+                <div class="tab-panels">
+                    <!-- Chat Panel -->
+                    <div class="tab-panel active" id="panel-chat">
+                        <div class="chat-messages" id="chatMessages">
+                        </div>
+                        <div class="chat-input-area">
+                            <div class="chat-input-container">
+                                <div class="chat-input-wrapper">
+                                    <button class="input-btn" title="附件">
+                                        📎
+                                    </button>
+                                    <button class="input-btn" title="快捷指令">
+                                        ⚡
+                                    </button>
+                                    <textarea 
+                                        class="chat-input" 
+                                        id="chatInput"
+                                        placeholder="发送消息..."
+                                        rows="1"
+                                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();app.sendMessage();}"
+                                        oninput="app.autoResize(this)"
+                                    ></textarea>
+                                    <div class="input-actions">
+                                        <button class="send-btn" onclick="app.sendMessage()" id="chatSendBtn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="chat-input-hint">SciFlow 可能会出错，建议核查重要信息</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Literature Panel -->
+                    <div class="tab-panel" id="panel-literature">
+                        <div class="literature-panel">
+                            <div class="literature-toolbar">
+                                <button class="btn-secondary">
+                                    🔍 搜索文献
+                                </button>
+                                <button class="btn-secondary">
+                                    📊 文献矩阵
+                                </button>
+                                <button class="btn-secondary">
+                                    📈 趋势分析
+                                </button>
+                                <button class="btn-secondary" style="margin-left: auto;">
+                                    ⬆️ 导入BibTeX
+                                </button>
+                            </div>
+                            <div class="literature-list" id="literatureList">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Outline Panel -->
+                    <div class="tab-panel" id="panel-outline">
+                        <div class="tools-panel">
+                            <div id="outlineContent">
+                                <div class="outline-item" style="margin-bottom: var(--spacing-md);">
+                                    <button class="btn-secondary" onclick="app.generateOutline()">✨ 生成大纲</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Experiment Panel -->
+                    <div class="tab-panel" id="panel-experiment">
+                        <div class="tools-panel">
+                            <div class="experiment-grid" id="experimentContent">
+                                <div style="grid-column: 1/-1; text-align: center; padding: var(--spacing-3xl); color: var(--text-tertiary);">
+                                    <div style="font-size: 48px; margin-bottom: var(--spacing-md);">🧪</div>
+                                    <p>开始对话后，实验方案将自动生成</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Report Panel -->
+                    <div class="tab-panel" id="panel-report">
+                        <div class="tools-panel">
+                            <div class="literature-toolbar">
+                                <button class="btn-secondary">
+                                    📝 编辑
+                                </button>
+                                <button class="btn-secondary">
+                                    👁️ 预览
+                                </button>
+                                <button class="btn-secondary" style="margin-left: auto;">
+                                    📥 导出DOCX
+                                </button>
+                                <button class="btn-secondary">
+                                    📄 导出PDF
+                                </button>
+                            </div>
+                            <div class="report-preview" id="reportPreview">
+                                <p style="text-align: center; color: var(--text-tertiary);">
+                                    论文报告将在工作流完成后生成
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Right Sidebar - Workflow Visualization -->
+        <aside class="right-sidebar" id="rightSidebar">
+            <div class="right-sidebar-title">工作流进度</div>
+            <div class="workflow-visual" id="workflowVisual">
+            </div>
+        </aside>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">设置</h2>
+                <button class="modal-close" onclick="app.closeSettings()">×</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-modal-tab="general" onclick="app.switchModalTab('general')">通用</button>
+                <button class="modal-tab" data-modal-tab="ai" onclick="app.switchModalTab('ai')">AI模型</button>
+                <button class="modal-tab" data-modal-tab="about" onclick="app.switchModalTab('about')">关于</button>
+            </div>
+            <div class="modal-body">
+                <!-- General Settings -->
+                <div class="modal-panel active" id="modal-general">
+                    <div class="form-group">
+                        <label class="form-label">主题</label>
+                        <div class="theme-options">
+                            <div class="theme-option active" data-theme-option="light" onclick="app.setThemeOption('light')">
+                                <div class="theme-icon">☀️</div>
+                                <div class="theme-label">浅色</div>
+                            </div>
+                            <div class="theme-option" data-theme-option="dark" onclick="app.setThemeOption('dark')">
+                                <div class="theme-icon">🌙</div>
+                                <div class="theme-label">深色</div>
+                            </div>
+                            <div class="theme-option" data-theme-option="auto" onclick="app.setThemeOption('auto')">
+                                <div class="theme-icon">🖥️</div>
+                                <div class="theme-label">跟随系统</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">语言</label>
+                        <select class="form-select" id="languageSelect">
+                            <option value="zh-CN">简体中文</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">数据目录</label>
+                        <div class="input-with-action">
+                            <input type="text" class="form-input" value="C:\Users\YHX\.sciflow" readonly />
+                        </div>
+                        <div class="form-hint">本地项目和数据存储位置</div>
+                    </div>
+                </div>
+                
+                <!-- AI Model Settings -->
+                <div class="modal-panel" id="modal-ai">
+                    <div class="form-group">
+                        <label class="form-label">服务提供商</label>
+                        <select class="form-select" id="aiProvider" onchange="app.updateModelList()">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="zhipu">智谱 AI</option>
+                            <option value="qwen">通义千问</option>
+                            <option value="ollama">Ollama (本地)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">API Key</label>
+                        <div class="input-with-action">
+                            <input type="password" class="form-input" id="apiKey" placeholder="sk-..." />
+                            <button class="input-action-btn" onclick="app.toggleApiKeyVisibility()" id="apiKeyToggle">👁️</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">API Base URL <span class="text-tertiary">(可选)</span></label>
+                        <input type="text" class="form-input" id="apiBase" placeholder="https://api.openai.com/v1" />
+                        <div class="form-hint">用于自定义API端点或代理</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">模型</label>
+                        <select class="form-select" id="aiModel">
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button class="btn btn-outline" onclick="app.testConnection()" style="width: 100%;">测试连接</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="app.saveSettings()" style="width: 100%;">保存配置</button>
+                        </div>
+                    </div>
+                    <div class="test-result" id="testResult"></div>
+                </div>
+                
+                <!-- About -->
+                <div class="modal-panel" id="modal-about">
+                    <div class="about-info">
+                        <div class="about-logo">S</div>
+                        <div class="about-name">SciFlow</div>
+                        <div class="about-version">版本 1.0.0</div>
+                        <div class="about-links">
+                            <a href="#" class="about-link">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                            <a href="#" class="about-link">📖 文档</a>
+                            <a href="#" class="about-link">💬 反馈</a>
+                        </div>
+                        <p style="margin-top: var(--spacing-2xl); font-size: 12px; color: var(--text-tertiary);">
+                            © 2026 SciFlow. MIT License.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <script>
+        // ============================================
+        // SciFlow Application
+        // ============================================
+        class SciFlowApp {
+            constructor() {
+                this.state = {
+                    theme: 'light',
+                    currentProject: null,
+                    currentTab: 'chat',
+                    sidebarCollapsed: false,
+                    rightSidebarVisible: false,
+                    messages: [],
+                    workflowSteps: [
+                        { id: 'topic', label: '确定主题', icon: '🎯' },
+                        { id: 'literature', label: '文献调研', icon: '📚' },
+                        { id: 'idea', label: '思路生成', icon: '💡' },
+                        { id: 'outline', label: '构建大纲', icon: '📋' },
+                        { id: 'experiment', label: '实验设计', icon: '🧪' },
+                        { id: 'writing', label: '论文撰写', icon: '✍️' },
+                        { id: 'polish', label: '润色修改', icon: '✨' },
+                        { id: 'export', label: '导出提交', icon: '📤' }
+                    ],
+                    currentStep: -1,
+                    isTyping: false,
+                    sampleLiterature: [
+                        {
+                            id: 1,
+                            title: 'Attention Is All You Need',
+                            authors: 'Vaswani et al.',
+                            year: 2017,
+                            journal: 'NeurIPS',
+                            citations: 110000,
+                            abstract: 'The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.'
+                        },
+                        {
+                            id: 2,
+                            title: 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding',
+                            authors: 'Devlin et al.',
+                            year: 2019,
+                            journal: 'NAACL',
+                            citations: 95000,
+                            abstract: 'We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models, BERT is designed to pre-train deep bidirectional representations from unlabeled text.'
+                        },
+                        {
+                            id: 3,
+                            title: 'GPT-4 Technical Report',
+                            authors: 'OpenAI',
+                            year: 2023,
+                            journal: 'arXiv',
+                            citations: 15000,
+                            abstract: 'We report the development of GPT-4, a large-scale multimodal model that can accept image and text inputs and produce text outputs. While less capable than humans in many real-world scenarios, GPT-4 exhibits human-level performance on various professional and academic benchmarks.'
+                        }
+                    ]
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.loadSettings();
+                this.applyTheme();
+                this.renderProgressSteps();
+                this.renderWorkflowVisual();
+                this.setupEventListeners();
+                
+                console.log('🧬 SciFlow v1.0.0 initialized');
+            }
+            
+            loadSettings() {
+                const saved = localStorage.getItem('sciflow_settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    this.state.theme = settings.theme || 'light';
+                }
+            }
+            
+            saveSettings() {
+                localStorage.setItem('sciflow_settings', JSON.stringify({
+                    theme: this.state.theme
+                }));
+            }
+            
+            applyTheme() {
+                let theme = this.state.theme;
+                
+                if (theme === 'auto') {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                
+                document.body.setAttribute('data-theme', theme);
+                
+                const themeBtn = document.getElementById('themeBtn');
+                if (themeBtn) {
+                    themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+                }
+                
+                const hljsTheme = document.getElementById('hljs-theme');
+                if (hljsTheme) {
+                    hljsTheme.href = theme === 'dark' 
+                        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+                        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+                }
+            }
+            
+            setupEventListeners() {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                    if (this.state.theme === 'auto') {
+                        this.applyTheme();
+                    }
+                });
+                
+                document.getElementById('settingsModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'settingsModal') {
+                        this.closeSettings();
+                    }
+                });
+                
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeSettings();
+                    }
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                        e.preventDefault();
+                        const activeInput = document.activeElement;
+                        if (this.state.currentProject) {
+                            document.getElementById('chatInput')?.focus();
+                        } else {
+                            document.getElementById('welcomeInput')?.focus();
+                        }
+                    }
+                });
+            }
+            
+            toggleTheme() {
+                const themes = ['light', 'dark'];
+                const currentIndex = themes.indexOf(this.state.theme === 'auto' ? 'light' : this.state.theme);
+                this.state.theme = themes[(currentIndex + 1) % themes.length];
+                this.applyTheme();
+                this.updateThemeOptions();
+                this.saveSettings();
+            }
+            
+            setThemeOption(theme) {
+                this.state.theme = theme;
+                this.applyTheme();
+                this.updateThemeOptions();
+                this.saveSettings();
+            }
+            
+            updateThemeOptions() {
+                document.querySelectorAll('.theme-option').forEach(opt => {
+                    opt.classList.toggle('active', opt.dataset.themeOption === this.state.theme);
+                });
+            }
+            
+            toggleSidebar() {
+                this.state.sidebarCollapsed = !this.state.sidebarCollapsed;
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.getElementById('sidebarToggle');
+                
+                sidebar.classList.toggle('collapsed', this.state.sidebarCollapsed);
+                toggle.textContent = this.state.sidebarCollapsed ? '›' : '‹';
+            }
+            
+            toggleRightSidebar() {
+                this.state.rightSidebarVisible = !this.state.rightSidebarVisible;
+                document.getElementById('rightSidebar').classList.toggle('visible', this.state.rightSidebarVisible);
+            }
+            
+            createNewProject() {
+                this.enterWorkspace('未命名项目');
+            }
+            
+            openProject(id) {
+                const titles = {
+                    'demo': '大语言模型推理优化'
+                };
+                this.enterWorkspace(titles[id] || '未命名项目');
+            }
+            
+            enterWorkspace(title) {
+                document.getElementById('welcomeScreen').style.display = 'none';
+                document.getElementById('workspace').classList.add('active');
+                document.getElementById('projectTitle').value = title;
+                this.state.currentProject = title;
+                this.state.currentStep = 0;
+                this.state.messages = [];
+                
+                document.getElementById('chatMessages').innerHTML = '';
+                
+                this.updateProgress();
+                this.addAssistantMessage(`你好！我是SciFlow AI科研助手 👋
+
+我将协助你完成 **${title}** 的研究工作。我可以帮你：
+
+- 🔍 **文献调研** - 检索和分析相关文献
+- 💡 **思路生成** - 探索创新研究点
+- 📋 **大纲构建** - 结构化论文框架
+- 🧪 **实验设计** - 制定实验方案
+- ✍️ **论文撰写** - 辅助各章节写作
+
+请告诉我你想从哪里开始？`, false);
+                
+                setTimeout(() => {
+                    document.getElementById('chatInput')?.focus();
+                }, 300);
+            }
+            
+            quickStart(type) {
+                const prompts = {
+                    'literature': '帮我进行文献调研',
+                    'writing': '帮我开始论文写作',
+                    'experiment': '帮我设计实验方案',
+                    'analysis': '帮我进行数据分析'
+                };
+                
+                const titles = {
+                    'literature': '文献调研项目',
+                    'writing': '论文写作项目',
+                    'experiment': '实验设计项目',
+                    'analysis': '数据分析项目'
+                };
+                
+                document.getElementById('welcomeInput').value = prompts[type];
+                this.enterWorkspace(titles[type]);
+                
+                setTimeout(() => {
+                    this.simulateWorkflow();
+                }, 1000);
+            }
+            
+            sendWelcomeMessage() {
+                const input = document.getElementById('welcomeInput');
+                const message = input.value.trim();
+                
+                if (!message) return;
+                
+                this.enterWorkspace(message.slice(0, 30) + (message.length > 30 ? '...' : ''));
+                input.value = '';
+                
+                setTimeout(() => {
+                    this.simulateWorkflow();
+                }, 500);
+            }
+            
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (!message || this.state.isTyping) return;
+                
+                this.addUserMessage(message);
+                input.value = '';
+                this.autoResize(input);
+                
+                this.simulateAIResponse(message);
+            }
+            
+            addUserMessage(content) {
+                this.state.messages.push({ role: 'user', content });
+                this.renderMessage({ role: 'user', content });
+                this.scrollToBottom();
+            }
+            
+            addAssistantMessage(content, stream = true) {
+                const msgId = 'msg-' + Date.now();
+                this.state.messages.push({ role: 'assistant', content, id: msgId });
+                
+                const messagesContainer = document.getElementById('chatMessages');
+                const msgEl = document.createElement('div');
+                msgEl.className = 'message assistant';
+                msgEl.id = msgId;
+                msgEl.innerHTML = `
+                    <div class="message-avatar">S</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-text"></div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(msgEl);
+                
+                if (stream) {
+                    this.typeWriter(msgEl.querySelector('.message-text'), content);
+                } else {
+                    msgEl.querySelector('.message-text').innerHTML = this.renderMarkdown(content);
+                    this.scrollToBottom();
+                }
+            }
+            
+            async typeWriter(element, text, speed = 15) {
+                this.state.isTyping = true;
+                document.getElementById('chatSendBtn').disabled = true;
+                
+                const typingEl = document.createElement('div');
+                typingEl.className = 'typing-indicator';
+                typingEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                element.appendChild(typingEl);
+                this.scrollToBottom();
+                
+                await this.sleep(500);
+                typingEl.remove();
+                
+                const words = text.split('');
+                let currentText = '';
+                
+                for (let i = 0; i < words.length; i++) {
+                    currentText += words[i];
+                    
+                    if (i % 5 === 0 || i === words.length - 1) {
+                        element.innerHTML = this.renderMarkdown(currentText);
+                        this.scrollToBottom();
+                    }
+                    
+                    await this.sleep(speed + Math.random() * 10);
+                }
+                
+                element.innerHTML = this.renderMarkdown(text);
+                
+                document.querySelectorAll('pre code').forEach((block) => {
+                    if (window.hljs) {
+                        hljs.highlightElement(block);
+                    }
+                });
+                
+                this.state.isTyping = false;
+                document.getElementById('chatSendBtn').disabled = false;
+                this.scrollToBottom();
+            }
+            
+            renderMarkdown(text) {
+                if (window.marked) {
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true
+                    });
+                    return marked.parse(text);
+                }
+                return `<p>${text.replace(/\n/g, '<br>')}</p>`;
+            }
+            
+            renderMessage(msg) {
+                const messagesContainer = document.getElementById('chatMessages');
+                const msgEl = document.createElement('div');
+                msgEl.className = `message ${msg.role}`;
+                msgEl.innerHTML = `
+                    <div class="message-avatar">${msg.role === 'assistant' ? 'S' : 'U'}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            ${msg.role === 'user' ? this.escapeHtml(msg.content) : ''}
+                        </div>
+                    </div>
+                `;
+                
+                if (msg.role === 'assistant' && msg.id) {
+                    msgEl.id = msg.id;
+                }
+                
+                messagesContainer.appendChild(msgEl);
+                this.scrollToBottom();
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            scrollToBottom() {
+                const container = document.getElementById('chatMessages');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+            
+            autoResize(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+            }
+            
+            async simulateAIResponse(userMessage) {
+                this.state.isTyping = true;
+                document.getElementById('chatSendBtn').disabled = true;
+                
+                const typingEl = document.createElement('div');
+                typingEl.className = 'message assistant';
+                typingEl.innerHTML = `
+                    <div class="message-avatar">S</div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('chatMessages').appendChild(typingEl);
+                this.scrollToBottom();
+                
+                await this.sleep(1000 + Math.random() * 1000);
+                typingEl.remove();
+                
+                let response = '';
+                
+                if (userMessage.includes('文献') || userMessage.includes('调研')) {
+                    response = this.getLiteratureResponse();
+                    this.advanceWorkflow('literature');
+                    this.populateLiterature();
+                } else if (userMessage.includes('大纲') || userMessage.includes('outline')) {
+                    response = this.getOutlineResponse();
+                    this.advanceWorkflow('outline');
+                    this.populateOutline();
+                } else if (userMessage.includes('实验')) {
+                    response = this.getExperimentResponse();
+                    this.advanceWorkflow('experiment');
+                    this.populateExperiment();
+                } else {
+                    response = this.getDefaultResponse(userMessage);
+                }
+                
+                this.addAssistantMessage(response);
+                
+                this.state.isTyping = false;
+                document.getElementById('chatSendBtn').disabled = false;
+            }
+            
+            async simulateWorkflow() {
+                const steps = ['topic', 'literature', 'idea', 'outline'];
+                
+                for (let i = 0; i < steps.length; i++) {
+                    await this.sleep(2000);
+                    this.advanceWorkflow(steps[i]);
+                    
+                    if (i === 1) {
+                        this.addToolCall('search_literature', '正在检索相关文献...', [
+                            { status: 'Searching arXiv...', progress: 30 },
+                            { status: 'Fetching Semantic Scholar...', progress: 60 },
+                            { status: 'Analyzing citations...', progress: 90 }
+                        ]);
+                    }
+                }
+                
+                this.populateLiterature();
+            }
+            
+            addToolCall(name, description, steps) {
+                const msgId = 'tool-' + Date.now();
+                const messagesContainer = document.getElementById('chatMessages');
+                
+                const toolEl = document.createElement('div');
+                toolEl.className = 'message assistant';
+                toolEl.innerHTML = `
+                    <div class="message-avatar">S</div>
+                    <div class="message-content">
+                        <div class="tool-call-card" id="${msgId}">
+                            <div class="tool-call-header">
+                                <div class="tool-call-icon">🔧</div>
+                                <div class="tool-call-info">
+                                    <div class="tool-call-name">${name}</div>
+                                    <div class="tool-call-status running">${description}</div>
+                                </div>
+                            </div>
+                            <div class="tool-call-progress">
+                                <div class="tool-call-progress-bar" style="width: 0%"></div>
+                            </div>
+                            <div class="tool-call-result">
+                                <div class="tool-steps"></div>
+                                <div class="tool-call-toggle" onclick="document.getElementById('${msgId}').classList.toggle('expanded')">
+                                    展开详情 ▼
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(toolEl);
+                this.scrollToBottom();
+                
+                const card = document.getElementById(msgId);
+                const bar = card.querySelector('.tool-call-progress-bar');
+                const stepsContainer = card.querySelector('.tool-steps');
+                const status = card.querySelector('.tool-call-status');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        status.textContent = '完成';
+                        status.classList.remove('running');
+                        status.classList.add('completed');
+                        card.classList.add('expanded');
+                    }
+                    bar.style.width = progress + '%';
+                }, 300);
+                
+                steps.forEach((step, i) => {
+                    setTimeout(() => {
+                        const stepEl = document.createElement('div');
+                        stepEl.style.cssText = 'padding: 8px 0; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;';
+                        stepEl.innerHTML = `<span style="color: var(--success);">✓</span> ${step.status}`;
+                        stepsContainer.appendChild(stepEl);
+                    }, i * 400);
+                });
+            }
+            
+            advanceWorkflow(stepId) {
+                const stepIndex = this.state.workflowSteps.findIndex(s => s.id === stepId);
+                if (stepIndex > this.state.currentStep) {
+                    this.state.currentStep = stepIndex;
+                    this.updateProgress();
+                }
+            }
+            
+            updateProgress() {
+                const total = this.state.workflowSteps.length;
+                const percent = Math.round(((this.state.currentStep + 1) / total) * 100);
+                
+                document.getElementById('progressPercent').textContent = percent + '%';
+                this.renderProgressSteps();
+                this.renderWorkflowVisual();
+            }
+            
+            renderProgressSteps() {
+                const container = document.getElementById('progressSteps');
+                if (!container) return;
+                
+                container.innerHTML = this.state.workflowSteps.map((step, i) => {
+                    let status = 'pending';
+                    if (i < this.state.currentStep) status = 'completed';
+                    else if (i === this.state.currentStep) status = 'active';
+                    
+                    return `
+                        <div class="progress-step ${status}">
+                            <div class="step-dot">
+                                ${status === 'completed' ? '✓' : i + 1}
+                            </div>
+                            <span class="step-label">${step.label}</span>
+                        </div>
+                        ${i < this.state.workflowSteps.length - 1 ? '<div class="step-connector"></div>' : ''}
+                    `;
+                }).join('');
+            }
+            
+            renderWorkflowVisual() {
+                const container = document.getElementById('workflowVisual');
+                if (!container) return;
+                
+                container.innerHTML = this.state.workflowSteps.map((step, i) => {
+                    let status = 'pending';
+                    if (i < this.state.currentStep) status = 'completed';
+                    else if (i === this.state.currentStep) status = 'active';
+                    
+                    return `
+                        <div class="workflow-node ${status}">
+                            <div class="node-dot"></div>
+                            <div class="node-label">${step.icon} ${step.label}</div>
+                            <div class="node-desc">
+                                ${status === 'completed' ? '已完成' : status === 'active' ? '进行中...' : '待执行'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            switchTab(tab) {
+                this.state.currentTab = tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tab);
+                });
+                
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.classList.toggle('active', panel.id === `panel-${tab}`);
+                });
+            }
+            
+            populateLiterature() {
+                const container = document.getElementById('literatureList');
+                if (!container) return;
+                
+                container.innerHTML = this.state.sampleLiterature.map((paper, i) => `
+                    <div class="literature-card" id="lit-${paper.id}">
+                        <div class="literature-title">${paper.title}</div>
+                        <div class="literature-meta">
+                            <span>👤 ${paper.authors}</span>
+                            <span>📅 ${paper.year}</span>
+                            <span>📰 ${paper.journal}</span>
+                            <span class="literature-citations">📊 ${paper.citations.toLocaleString()} 引用</span>
+                        </div>
+                        <div class="literature-abstract">${paper.abstract}</div>
+                        <div class="literature-actions">
+                            <button class="literature-btn" onclick="document.getElementById('lit-${paper.id}').classList.toggle('expanded')">
+                                摘要
+                            </button>
+                            <button class="literature-btn">复制引用 (GB/T)</button>
+                            <button class="literature-btn">BibTeX</button>
+                            <button class="literature-btn primary">添加到项目</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            populateOutline() {
+                const container = document.getElementById('outlineContent');
+                if (!container) return;
+                
+                const outline = [
+                    { level: '1', title: '引言', children: [
+                        { level: '1.1', title: '研究背景' },
+                        { level: '1.2', title: '研究问题' },
+                        { level: '1.3', title: '研究贡献' }
+                    ]},
+                    { level: '2', title: '相关工作', children: [
+                        { level: '2.1', title: 'Transformer架构' },
+                        { level: '2.2', title: '高效推理方法' },
+                        { level: '2.3', title: '模型压缩技术' }
+                    ]},
+                    { level: '3', title: '方法', children: [
+                        { level: '3.1', title: '整体架构' },
+                        { level: '3.2', title: '核心创新点' },
+                        { level: '3.3', title: '理论分析' }
+                    ]},
+                    { level: '4', title: '实验', children: [
+                        { level: '4.1', title: '实验设置' },
+                        { level: '4.2', title: '基准对比' },
+                        { level: '4.3', title: '消融实验' }
+                    ]},
+                    { level: '5', title: '结论' }
+                ];
+                
+                container.innerHTML = outline.map(item => `
+                    <div class="outline-item">
+                        <span class="outline-level">${item.level}</span>
+                        <span>${item.title}</span>
+                    </div>
+                    ${item.children ? `
+                        <div class="outline-children">
+                            ${item.children.map(child => `
+                                <div class="outline-item">
+                                    <span class="outline-level">${child.level}</span>
+                                    <span>${child.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `).join('');
+            }
+            
+            populateExperiment() {
+                const container = document.getElementById('experimentContent');
+                if (!container) return;
+                
+                container.innerHTML = `
+                    <div class="experiment-card">
+                        <h4>🖥️ 基准模型</h4>
+                        <div class="experiment-item">
+                            <span class="experiment-label">Baseline 1</span>
+                            <span class="experiment-value">LLaMA-2-7B</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">Baseline 2</span>
+                            <span class="experiment-value">Mistral-7B</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">Ours</span>
+                            <span class="experiment-value" style="color: var(--accent); font-weight: 600;">SciFlow-7B</span>
+                        </div>
+                    </div>
+                    <div class="experiment-card">
+                        <h4>📊 数据集</h4>
+                        <div class="experiment-item">
+                            <span class="experiment-label">训练集</span>
+                            <span class="experiment-value">1T tokens</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">评测集</span>
+                            <span class="experiment-value">MMLU, GSM8K, HumanEval</span>
+                        </div>
+                    </div>
+                    <div class="experiment-card">
+                        <h4>📈 评测指标</h4>
+                        <div class="experiment-item">
+                            <span class="experiment-label">Perplexity</span>
+                            <span class="experiment-value">↓</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">准确率</span>
+                            <span class="experiment-value">↑</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">推理速度</span>
+                            <span class="experiment-value">tokens/s ↑</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">显存占用</span>
+                            <span class="experiment-value">GB ↓</span>
+                        </div>
+                    </div>
+                    <div class="experiment-card">
+                        <h4>⚙️ 硬件环境</h4>
+                        <div class="experiment-item">
+                            <span class="experiment-label">GPU</span>
+                            <span class="experiment-value">8×A100 80GB</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">CPU</span>
+                            <span class="experiment-value">AMD EPYC 7763</span>
+                        </div>
+                        <div class="experiment-item">
+                            <span class="experiment-label">框架</span>
+                            <span class="experiment-value">PyTorch 2.1</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            generateOutline() {
+                this.addUserMessage('请帮我生成论文大纲');
+                setTimeout(() => {
+                    this.advanceWorkflow('outline');
+                    this.populateOutline();
+                    this.addAssistantMessage(this.getOutlineResponse());
+                    this.switchTab('outline');
+                }, 500);
+            }
+            
+            getLiteratureResponse() {
+                return `好的，我正在为你进行文献调研 🔍
+
+我已检索到该领域的 **3 篇高影响力文献**，你可以在「📚 文献」面板中查看详情：
+
+**关键发现：**
+1. Transformer架构 (Vaswani et al., 2017) 是该领域的基础
+2. 预训练-微调范式成为主流
+3. 最新研究聚焦于效率优化
+
+**建议后续步骤：**
+- 查看文献面板，浏览摘要
+- 点击「添加到项目」将重要文献纳入参考
+- 需要更深入的分析，可以让我生成文献矩阵
+
+需要我继续深入分析某个方向吗？`;
+            }
+            
+            getOutlineResponse() {
+                return `我为你生成了以下论文大纲 📋
+
+## 论文大纲结构
+
+### 1. 引言
+- 研究背景与动机
+- 问题陈述
+- 主要贡献
+
+### 2. 相关工作
+- 领域发展脉络
+- 现有方法分类
+- 研究空白分析
+
+### 3. 方法
+- 问题形式化
+- 模型架构
+- 训练策略
+- 理论分析
+
+### 4. 实验
+- 实验设置
+- 主实验结果
+- 消融实验
+- 分析与讨论
+
+### 5. 结论与展望
+
+大纲已更新到「📋 大纲」面板，你可以随时编辑调整。需要我帮你细化某个章节吗？`;
+            }
+            
+            getExperimentResponse() {
+                return `根据你的研究方向，我为你设计了实验方案 🧪
+
+**实验配置已生成**，请在「🔬 实验」面板查看详情：
+
+\`\`\`python
+# 基础训练配置
+config = {
+    "model": "SciFlow-7B",
+    "batch_size": 128,
+    "learning_rate": 2e-4,
+    "warmup_steps": 2000,
+    "total_steps": 100000,
+    "optimizer": "AdamW",
+    "scheduler": "cosine"
+}
+\`\`\`
+
+**实验对照：**
+- Baseline: LLaMA-2-7B, Mistral-7B
+- 评测基准: MMLU, GSM8K, HumanEval
+- 主要指标: 准确率、推理速度、显存占用
+
+需要我进一步调整实验配置吗？`;
+            }
+            
+            getDefaultResponse(message) {
+                return `收到你的消息："${message.slice(0, 50)}${message.length > 50 ? '...' : ''}"
+
+作为你的AI科研助手，我可以帮你：
+
+1. **📚 文献调研** - 检索、分析、管理文献
+2. **💡 思路启发** - 探索研究方向和创新点
+3. **📋 大纲构建** - 结构化论文框架
+4. **🧪 实验设计** - 制定实验方案
+5. **✍️ 写作辅助** - 撰写、润色论文内容
+6. **📊 数据分析** - 结果可视化和统计
+
+你可以点击上方的标签切换到不同面板，或直接描述你的需求。
+
+例如：
+- "帮我找关于高效推理的最新文献"
+- "生成一个实验设计方案"
+- "帮我写引言部分"`;
+            }
+            
+            openSettings() {
+                document.getElementById('settingsModal').classList.add('active');
+            }
+            
+            closeSettings() {
+                document.getElementById('settingsModal').classList.remove('active');
+            }
+            
+            switchModalTab(tab) {
+                document.querySelectorAll('.modal-tab').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.modalTab === tab);
+                });
+                document.querySelectorAll('.modal-panel').forEach(panel => {
+                    panel.classList.toggle('active', panel.id === `modal-${tab}`);
+                });
+            }
+            
+            updateModelList() {
+                const provider = document.getElementById('aiProvider').value;
+                const modelSelect = document.getElementById('aiModel');
+                const apiBase = document.getElementById('apiBase');
+                
+                const models = {
+                    'openai': [
+                        { value: 'gpt-4o', label: 'GPT-4o' },
+                        { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+                        { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+                        { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+                    ],
+                    'anthropic': [
+                        { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+                        { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
+                        { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
+                    ],
+                    'deepseek': [
+                        { value: 'deepseek-chat', label: 'DeepSeek V3' },
+                        { value: 'deepseek-coder', label: 'DeepSeek Coder' }
+                    ],
+                    'zhipu': [
+                        { value: 'glm-4', label: 'GLM-4' },
+                        { value: 'glm-4-air', label: 'GLM-4 Air' }
+                    ],
+                    'qwen': [
+                        { value: 'qwen2.5-72b-instruct', label: 'Qwen2.5 72B' },
+                        { value: 'qwen2.5-7b-instruct', label: 'Qwen2.5 7B' }
+                    ],
+                    'ollama': [
+                        { value: 'llama3.1', label: 'Llama 3.1' },
+                        { value: 'mistral', label: 'Mistral' },
+                        { value: 'qwen2.5', label: 'Qwen 2.5' }
+                    ]
+                };
+                
+                const baseUrls = {
+                    'openai': 'https://api.openai.com/v1',
+                    'anthropic': 'https://api.anthropic.com',
+                    'deepseek': 'https://api.deepseek.com/v1',
+                    'zhipu': 'https://open.bigmodel.cn/api/paas/v4',
+                    'qwen': 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+                    'ollama': 'http://localhost:11434/v1'
+                };
+                
+                modelSelect.innerHTML = models[provider].map(m => 
+                    `<option value="${m.value}">${m.label}</option>`
+                ).join('');
+                
+                if (apiBase) {
+                    apiBase.placeholder = baseUrls[provider];
+                }
+            }
+            
+            toggleApiKeyVisibility() {
+                const input = document.getElementById('apiKey');
+                const toggle = document.getElementById('apiKeyToggle');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggle.textContent = '🙈';
+                } else {
+                    input.type = 'password';
+                    toggle.textContent = '👁️';
+                }
+            }
+            
+            async testConnection() {
+                const resultEl = document.getElementById('testResult');
+                resultEl.className = 'test-result';
+                resultEl.textContent = '测试中...';
+                resultEl.style.display = 'block';
+                
+                await this.sleep(1500);
+                
+                const success = Math.random() > 0.3;
+                
+                if (success) {
+                    resultEl.className = 'test-result success';
+                    resultEl.textContent = '✓ 连接成功！模型响应正常';
+                } else {
+                    resultEl.className = 'test-result error';
+                    resultEl.textContent = '✗ 连接失败，请检查API Key和网络设置';
+                }
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        const app = new SciFlowApp();
+    </script>
+</body>
+</html>

@@ -4,9 +4,11 @@
 *.pyd
 __pycache__/
 *.egg-info/
+*.egg
 dist/
 build/
 .eggs/
+*.spec
 
 # Environment
 .env
@@ -19,6 +21,8 @@ build/
 *.swp
 *.swo
 *~
+.trae/
+.claude/
 
 # OS
 .DS_Store
@@ -30,3 +34,14 @@ output/
 
 # Logs
 *.log
+
+# User data
+~/.sciflow/
+.sciflow/
+
+# Node (if any)
+node_modules/
+
+# PyInstaller
+manifest/
+resources/

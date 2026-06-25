@@ -1,177 +1,153 @@
-# SciFlow - 科研全流程 Agent 编排器
+<div align="center">
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/Python-3.10+-brightgreen.svg)](https://python.org)
-[![Code Style](https://img.shields.io/badge/Code%20Style-Black-blue.svg)](https://black.readthedocs.io)
+# 🧬 SciFlow
 
-> 💡 **一句话介绍**：用自然语言告诉 SciFlow 你要做什么，它帮你自动完成从文献调研到论文撰写的全部工作。
+**AI驱动的科研全流程智能工作台**
 
----
+*从文献调研到论文撰写，让科研回归创新本身*
 
-## 🤔 什么是 SciFlow？
+<p align="center">
+  <a href="#核心特性">核心特性</a> •
+  <a href="#快速开始">快速开始</a> •
+  <a href="#使用指南">使用指南</a> •
+  <a href="#api配置">API配置</a> •
+  <a href="#开发">开发</a> •
+  <a href="https://github.com/Yhx888/sciflow">GitHub</a>
+</p>
 
-SciFlow 是一个 **AI 驱动的科研工作流助手**。你只需要用自然语言描述你的研究需求，它就能：
+</div>
 
-1. 📚 **帮你找文献** — 自动检索相关学术论文
-2. 📦 **帮你管理文献** — 同步到 Zotero 文献库
-3. 📝 **帮你写文档** — 自动生成技术调研文档
-4. 🐍 **帮你分析数据** — 执行数据分析脚本
-5. 📄 **帮你写论文** — 生成论文初稿
+## ✨ 核心特性
 
-**无需编程基础**，用自然语言就能操作！
+- 🖥️ **桌面应用 + Web界面 + CLI** 三种使用方式，开箱即用
+- 💬 **ChatGPT式对话交互**，自然语言驱动科研工作流
+- 🔌 **支持多种LLM**：OpenAI GPT-4o、Anthropic Claude、DeepSeek、智谱GLM、通义千问、Ollama本地模型
+- 📚 **智能文献调研**：检索、分析、矩阵对比、自动BibTeX/GB-T 7714/APA引用
+- 🧠 **研究辅助**：思路梳理、论文大纲生成、实验方案设计
+- 📊 **成果导出**：Markdown报告、Word文档、BibTeX、ZIP打包下载
+- 🎨 **精致UI设计**：苹果/Notion/ChatGPT级别的界面体验
+- 🔒 **本地优先**：数据存储在本地，隐私安全
 
----
+## 🚀 快速开始
 
-## 🚀 小白快速上手
+### 方式一：桌面应用（推荐）
 
-### 步骤 1：安装
+下载最新的 `SciFlow-Setup.exe` 安装包，双击安装即可使用。
 
-打开电脑的"命令提示符"或"终端"，输入以下命令：
+### 方式二：Python包
 
 ```bash
-# 安装 SciFlow
 pip install sciflow
+sciflow-app        # 启动桌面应用
+sciflow server     # 启动Web服务器，访问 http://127.0.0.1:8765
+sciflow            # 使用CLI
 ```
 
-如果是从 GitHub 获取最新版本：
+### 方式三：源码运行
 
 ```bash
 git clone https://github.com/Yhx888/sciflow.git
 cd sciflow
-pip install -e .
+pip install -e ".[desktop,dev]"
+python run.py
 ```
 
-### 步骤 2：启动 SciFlow
+## 📖 使用指南
 
-安装完成后，在终端输入：
+### 第一次使用
+
+1. 启动SciFlow后，点击左下角 ⚙️ 设置按钮
+2. 在「AI模型」中选择你使用的提供商（DeepSeek/OpenAI等）
+3. 输入API Key（如使用DeepSeek，到 https://platform.deepseek.com/ 获取）
+4. 可选：自定义API Base URL（如使用代理或本地Ollama）
+5. 点击「测试连接」确认配置正确
+6. 保存配置，开始使用！
+
+未配置API Key时，SciFlow将使用Mock模式演示功能。
+
+### 工作流步骤
+
+SciFlow将科研流程自动化为8个步骤：
+
+1. 🎯 **需求理解** - 分析你的研究主题
+2. 🔍 **文献检索** - 搜索相关领域文献
+3. 📊 **文献分析** - 总结研究趋势
+4. 💡 **思路生成** - 探索创新研究点
+5. 📋 **大纲构建** - 生成论文框架
+6. 🧪 **实验设计** - 制定实验方案
+7. ✍️ **文档撰写** - 辅助撰写报告
+8. 📦 **成果导出** - 打包下载所有成果
+
+### 支持的LLM提供商
+
+| 提供商 | 默认模型 | 获取API Key |
+|--------|---------|------------|
+| OpenAI | gpt-4o-mini | https://platform.openai.com/ |
+| Anthropic | claude-3-haiku | https://console.anthropic.com/ |
+| DeepSeek | deepseek-chat | https://platform.deepseek.com/ |
+| 智谱AI | glm-4-flash | https://open.bigmodel.cn/ |
+| 通义千问 | qwen-turbo | https://dashscope.aliyun.com/ |
+| Ollama | llama3 | http://localhost:11434（本地） |
+
+## 🔧 API配置
+
+### 配置文件位置
+
+配置文件存储在 `~/.sciflow/config.json`
+
+### 通过环境变量配置
+
+也可以通过环境变量配置：
 
 ```bash
-sciflow
+# OpenAI
+export OPENAI_API_KEY="sk-xxx"
+
+# DeepSeek（推荐国内用户使用）
+export DEEPSEEK_API_KEY="sk-xxx"
 ```
 
-你会看到欢迎界面和可用的功能选项。
+## 🏗️ 技术栈
 
-### 步骤 3：一键完成科研工作流（推荐）
+- **后端**：Python 3.10+、FastAPI、Pydantic v2、httpx
+- **前端**：原生HTML/CSS/JS、Marked.js、Highlight.js
+- **桌面**：pywebview（轻量WebView）
+- **LLM**：统一OpenAI兼容API接口
+- **CLI**：Click
+- **文档**：python-docx
 
-这是最简单的方式！只需一行命令，SciFlow 会自动帮你完成所有工作：
-
-```bash
-# 告诉 SciFlow 你的研究主题
-sciflow pipeline run --topic "ROS2 自主导航" --author "张三" --affiliation "清华大学"
-```
-
-执行后，SciFlow 会自动：
-1. 检索相关文献
-2. 保存到文献库
-3. 生成技术调研文档
-4. 创建数据分析脚本
-5. 生成论文初稿
-
----
-
-## 🗣️ 自然语言交互指南
-
-你可以用自然语言的方式告诉 SciFlow 你想做什么：
-
-### 📚 "帮我找一些关于 ROS2 导航的论文"
-
-```bash
-sciflow literature search "ROS2 navigation" --mock
-```
-
-### 📦 "把这篇论文保存到我的文献库"
-
-```bash
-sciflow zotero add --title "论文标题" --authors "作者1,作者2" --year 2025
-```
-
-### 📝 "帮我生成一份技术调研文档"
-
-```bash
-sciflow lark create --title "技术调研文档" --from-zotero
-```
-
-### 🐍 "帮我处理一下实验数据"
-
-```bash
-# 先创建一个数据分析模板
-sciflow python create-template --name "data_analysis"
-
-# 执行数据分析
-sciflow python run --script "data_analysis.py"
-```
-
-### 📄 "帮我生成一篇论文初稿"
-
-```bash
-sciflow word create --title "学术论文" --author "张三" --affiliation "清华大学"
-```
-
----
-
-## 📋 功能说明（通俗版）
-
-| 功能 | 你可以说 | SciFlow 会做 |
-|------|---------|-------------|
-| 文献调研 | "帮我搜论文" | 自动检索学术数据库 |
-| 文献管理 | "保存到文献库" | 同步到 Zotero |
-| 文档生成 | "写技术文档" | 创建飞书文档 |
-| 数据分析 | "处理数据" | 执行 Python 脚本 |
-| 论文生成 | "写论文" | 生成 Word 文档 |
-| 全流程 | "帮我做科研" | 一键完成所有工作 |
-
----
-
-## 🔧 技术细节（进阶用户）
-
-如果你对技术感兴趣，可以了解一下 SciFlow 的内部结构：
-
-### 项目结构
+## 📁 项目结构
 
 ```
-sci_flow/
-├── cli.py              # 命令行入口
-├── config.py           # 配置管理
-├── literature.py       # 文献调研模块
-├── zotero.py           # Zotero 同步模块
-├── lark.py             # 飞书文档模块
-├── python.py           # Python 数据处理模块
-├── word.py             # Word 文档生成模块
-└── pipeline.py         # 全流程编排模块
+sciflow/
+├── sci_flow/
+│   ├── core/           # 核心业务逻辑
+│   │   ├── config.py   # 配置管理
+│   │   ├── database.py # 数据持久化
+│   │   ├── models.py   # 数据模型
+│   │   ├── literature.py # 文献管理
+│   │   ├── workflow.py # 工作流引擎
+│   │   └── generator.py # 成果生成
+│   ├── llm/            # LLM客户端
+│   │   └── client.py   # 多提供商支持
+│   ├── server/         # FastAPI服务器
+│   │   └── app.py      # API路由
+│   ├── desktop/        # 桌面应用
+│   │   └── launcher.py # pywebview启动器
+│   ├── web/            # Web前端
+│   │   └── index.html  # 单页应用
+│   └── cli.py          # 命令行入口
+├── build_exe.py        # 打包脚本
+├── run.py              # 开发启动器
+└── pyproject.toml
 ```
-
-### 技术栈
-
-- **Python 3.10+** — 编程语言
-- **Click CLI** — 命令行框架
-- **Pydantic** — 数据验证
-- **python-docx** — Word 文档处理
-- **requests** — HTTP 请求
-
-### 配置文件
-
-可以创建 `.env` 文件自定义配置：
-
-```
-ZOTERO_API_KEY=your_api_key
-ZOTERO_USER_ID=your_user_id
-LARK_DOC_TEMPLATE=template_path
-```
-
----
-
-## 🤝 贡献
-
-欢迎贡献代码！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解贡献流程。
 
 ## 📜 许可证
 
 MIT License - 详见 [LICENSE](LICENSE)
 
-## 📞 问题反馈
-
-如有问题或建议，请在 GitHub Issues 中提交。
-
 ---
 
-> 💡 **小贴士**：如果你是科研小白，建议直接使用 `sciflow pipeline run` 命令，一键体验完整的科研工作流！
+<div align="center">
+Made with ❤️ for researchers
+</div>

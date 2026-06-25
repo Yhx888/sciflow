@@ -3,371 +3,1376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SciFlow - 科研流程编排器</title>
+    <title>SciFlow - 科研全流程智能编排器</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+        :root {
+            --primary: #00d4ff;
+            --secondary: #b24bff;
+            --accent: #ff6b9d;
+            --success: #00ff88;
+            --bg-dark: #0f0c29;
+            --bg-mid: #302b63;
+            --bg-end: #24243e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            color: #e8e8e8;
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-end));
+            background-attachment: fixed;
+            color: var(--text-primary);
             line-height: 1.8;
+            overflow-x: hidden;
         }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(178, 75, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 157, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
-        .logo {
-            font-size: 72px;
-            margin-bottom: 20px;
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 60px rgba(178, 75, 255, 0.4); }
         }
-        h1 {
-            font-size: 42px;
-            font-weight: 700;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .subtitle {
-            font-size: 20px;
-            color: #94a3b8;
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        .tagline {
-            display: inline-block;
-            background: linear-gradient(90deg, #00d4ff22, #7b2cbf22);
-            border: 1px solid #00d4ff44;
-            padding: 8px 24px;
-            border-radius: 20px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #00d4ff;
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .section {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
-        .section h2 {
-            font-size: 22px;
-            color: #00d4ff;
-            margin-bottom: 20px;
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 12, 41, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+        }
+
+        .nav-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .section h2 .icon {
-            font-size: 28px;
-        }
-        .flow-diagram {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 20px 0;
-            overflow-x: auto;
-        }
-        .flow-container {
+
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
+            font-size: 20px;
+            color: white;
         }
-        .flow-node {
-            background: linear-gradient(135deg, #1e3a5f, #2d4a6f);
-            border: 2px solid #00d4ff;
-            border-radius: 12px;
-            padding: 15px 20px;
-            text-align: center;
-            min-width: 120px;
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
         }
-        .flow-node .emoji {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .flow-node .name {
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
             font-size: 14px;
-            font-weight: 600;
-            color: #fff;
+            font-weight: 500;
+            transition: color 0.3s;
         }
-        .flow-node .tool {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 4px;
+
+        .nav-links a:hover {
+            color: var(--primary);
         }
-        .flow-arrow {
-            font-size: 24px;
-            color: #00d4ff;
-        }
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .feature-card {
-            background: rgba(0,212,255,0.05);
-            border: 1px solid rgba(0,212,255,0.2);
-            border-radius: 12px;
-            padding: 20px;
-        }
-        .feature-card .icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-        }
-        .feature-card h3 {
-            font-size: 16px;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-        .feature-card p {
-            font-size: 13px;
-            color: #94a3b8;
-        }
-        .user-flow {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 25px;
-            margin: 20px 0;
-        }
-        .user-flow ol {
-            padding-left: 25px;
-        }
-        .user-flow li {
-            margin-bottom: 15px;
-            padding-left: 10px;
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 20px 80px;
             position: relative;
         }
-        .user-flow li::marker {
-            color: #00d4ff;
-            font-weight: bold;
-        }
-        .user-flow .step-title {
-            color: #fff;
-            font-weight: 600;
-        }
-        .user-flow .step-desc {
-            color: #94a3b8;
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 30px;
+            color: var(--primary);
             font-size: 14px;
-            margin-top: 4px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease;
         }
-        .tech-stack {
+
+        .hero-logo {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 35px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
+            align-items: center;
+            justify-content: center;
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            box-shadow: 0 0 80px rgba(0, 212, 255, 0.4), 0 0 120px rgba(178, 75, 255, 0.2);
+            animation: float 4s ease-in-out infinite, pulse-glow 3s ease-in-out infinite;
+            color: white;
         }
-        .tech-badge {
-            background: rgba(123, 44, 191, 0.2);
-            border: 1px solid rgba(123, 44, 191, 0.4);
-            color: #c084fc;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
+
+        .hero-title {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, var(--primary), var(--secondary), var(--accent));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 5s ease infinite, fadeInUp 0.8s ease 0.2s both;
         }
-        .value-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+        .hero-slogan {
+            font-size: 22px;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .hero-actions {
+            display: flex;
             gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease 0.6s both;
         }
-        .value-card {
-            background: linear-gradient(135deg, #1e3a5f22, #2d4a6f22);
-            border: 1px solid rgba(0,212,255,0.2);
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-        }
-        .value-card .icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-        .value-card h3 {
-            color: #fff;
+
+        .btn-primary {
+            padding: 18px 48px;
             font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 50px rgba(0, 212, 255, 0.6), 0 0 80px rgba(178, 75, 255, 0.4);
+        }
+
+        .btn-secondary {
+            padding: 18px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 800px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease 0.8s both;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 30px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section {
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(178, 75, 255, 0.1);
+            border: 1px solid rgba(178, 75, 255, 0.3);
+            border-radius: 20px;
+            color: var(--secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .screenshot-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 100px 40px;
+        }
+
+        .screenshot-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .screenshot-wrapper {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .screenshot-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .screenshot-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .screenshot-dot.red { background: #ff5f57; }
+        .screenshot-dot.yellow { background: #febc2e; }
+        .screenshot-dot.green { background: #28c840; }
+
+        .screenshot-placeholder {
+            aspect-ratio: 16/9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screenshot-mock {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mock-sidebar {
+            width: 200px;
+            background: var(--glass);
+            border-right: 1px solid var(--glass-border);
+            padding: 20px;
+        }
+
+        .mock-logo {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .mock-nav-item {
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
             margin-bottom: 10px;
         }
-        .value-card p {
-            color: #94a3b8;
-            font-size: 14px;
+
+        .mock-nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(178, 75, 255, 0.2));
+            border: 1px solid rgba(0, 212, 255, 0.3);
         }
-        .footer {
+
+        .mock-main {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mock-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .mock-progress-bar {
+            width: 65%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 2px;
+            animation: progress-shine 2s infinite;
+        }
+
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        .mock-card {
+            flex: 1;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .mock-card-title {
+            width: 200px;
+            height: 24px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+
+        .mock-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mock-line {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .mock-line:nth-child(1) { width: 100%; }
+        .mock-line:nth-child(2) { width: 85%; }
+        .mock-line:nth-child(3) { width: 92%; }
+        .mock-line:nth-child(4) { width: 70%; }
+
+        .screenshot-label {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(178, 75, 255, 0.2));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .feature-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .feature-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .workflow-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 100px 40px;
+        }
+
+        .workflow-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .workflow-visual {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            min-width: 140px;
+            transition: all 0.3s;
+        }
+
+        .workflow-step:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .workflow-step-num {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+        }
+
+        .workflow-step-icon {
+            font-size: 40px;
+        }
+
+        .workflow-step-name {
+            font-size: 15px;
+            font-weight: 600;
             text-align: center;
-            padding: 40px 0;
-            color: #64748b;
-            font-size: 14px;
         }
-        @media (max-width: 600px) {
-            h1 { font-size: 28px; }
-            .flow-container { flex-direction: column; }
-            .flow-arrow { transform: rotate(90deg); }
+
+        .workflow-arrow {
+            font-size: 28px;
+            color: var(--primary);
+            animation: flow-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes flow-pulse {
+            0%, 100% { opacity: 0.5; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(5px); }
+        }
+
+        .innovation-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .innovation-card {
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(178, 75, 255, 0.05));
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            transition: all 0.4s;
+            position: relative;
+        }
+
+        .innovation-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .innovation-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 212, 255, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 50px rgba(0, 212, 255, 0.15);
+        }
+
+        .innovation-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .innovation-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .innovation-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .quickstart-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 100px 40px;
+        }
+
+        .quickstart-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .quickstart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .quickstart-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.3s;
+        }
+
+        .quickstart-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .quickstart-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .quickstart-badge.web {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .quickstart-badge.cli {
+            background: rgba(178, 75, 255, 0.15);
+            color: var(--secondary);
+            border: 1px solid rgba(178, 75, 255, 0.3);
+        }
+
+        .quickstart-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .quickstart-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.8;
+        }
+
+        .quickstart-steps {
+            list-style: none;
+            margin-bottom: 28px;
+        }
+
+        .quickstart-steps li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .quickstart-step-num {
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: '$';
+            margin-right: 10px;
+            color: var(--success);
+        }
+
+        .tech-section {
+            padding: 100px 40px;
+        }
+
+        .tech-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .tech-badge {
+            padding: 14px 28px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tech-badge:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .tech-icon {
+            font-size: 20px;
+        }
+
+        .footer {
+            padding: 60px 40px 40px;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+        }
+
+        .footer-copyright {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .footer-license {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-title { font-size: 48px; }
+            .stats-grid { gap: 20px; }
+            .innovation-grid { grid-template-columns: 1fr; }
+            .quickstart-grid { grid-template-columns: 1fr; }
+            .workflow-arrow { transform: rotate(90deg); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .nav-links { display: none; }
+            .hero { padding: 100px 20px 60px; }
+            .hero-title { font-size: 36px; }
+            .hero-slogan { font-size: 18px; }
+            .hero-logo { width: 100px; height: 100px; font-size: 52px; border-radius: 25px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 16px; }
+            .stat-number { font-size: 36px; }
+            .section { padding: 60px 20px; }
+            .screenshot-section, .workflow-section, .quickstart-section { padding: 60px 20px; }
+            .section-title { font-size: 32px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .feature-card { padding: 24px; }
+            .workflow-visual { flex-direction: column; }
+            .workflow-arrow { transform: rotate(90deg); }
+            .hero-actions { flex-direction: column; width: 100%; max-width: 300px; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+            .tech-grid { gap: 10px; }
+            .tech-badge { padding: 10px 18px; font-size: 13px; }
         }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-logo">
+            <div class="nav-logo-icon">S</div>
+            <span>SciFlow</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">功能</a></li>
+            <li><a href="#workflow">工作流</a></li>
+            <li><a href="#innovation">创新</a></li>
+            <li><a href="#quickstart">快速开始</a></li>
+            <li><a href="https://github.com/Yhx888/sciflow" target="_blank">GitHub</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
-        <div class="header">
-            <div class="logo">🔬</div>
-            <h1>SciFlow</h1>
-            <p class="subtitle">科研流程编排器 — 用自然语言串联你的整个研究工作流</p>
-            <span class="tagline">MCP/Skill 驱动 · 命令行优先 · 工具生态串联</span>
-        </div>
+        <section class="hero">
+            <div class="hero-badge">
+                <span>✨</span> Trae 创意大赛参赛作品
+            </div>
+            <div class="hero-logo">S</div>
+            <h1 class="hero-title">SciFlow - 科研全流程智能编排器</h1>
+            <p class="hero-slogan">
+                让科研回归创新，用自然语言串联文献调研、技术文档、数据分析、论文撰写全流程。
+                你的智能科研助手，从此告别重复劳动。
+            </p>
+            <div class="hero-actions">
+                <a href="sciflow_demo.html" class="btn-primary">
+                    <span>🚀</span>
+                    <span>立即体验 Web Demo</span>
+                </a>
+                <a href="https://github.com/Yhx888/sciflow" target="_blank" class="btn-secondary">
+                    <span>📦</span>
+                    <span>查看 GitHub</span>
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">科研环节覆盖</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">成果输出格式</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">配置开箱即用</div>
+                </div>
+            </div>
+        </section>
 
-        <div class="section">
-            <h2><span class="icon">💡</span> 一句话介绍</h2>
-            <p>一款基于 MCP 协议的科研工作流编排CLI工具，通过自然语言指令无缝串联文献管理（Zotero）、技术文档（Lark）、数据分析（Python）、论文撰写（Word）等工具，实现科研全流程自动化。</p>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🔄</span> 工作流架构</h2>
-            <div class="flow-diagram">
-                <div class="flow-container">
-                    <div class="flow-node">
-                        <span class="emoji">📚</span>
-                        <span class="name">文献调研</span>
-                        <span class="tool">Trae Skill</span>
+        <section class="screenshot-section reveal">
+            <div class="screenshot-container">
+                <div class="section-header">
+                    <div class="section-badge">🎨 产品展示</div>
+                    <h2 class="section-title">Web Demo 界面预览</h2>
+                    <p class="section-desc">开箱即用的 Web 交互界面，可视化工作流编排，沉浸式科研体验</p>
+                </div>
+                <div class="screenshot-wrapper">
+                    <div class="screenshot-header">
+                        <div class="screenshot-dot red"></div>
+                        <div class="screenshot-dot yellow"></div>
+                        <div class="screenshot-dot green"></div>
                     </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-node">
-                        <span class="emoji">📦</span>
-                        <span class="name">文献管理</span>
-                        <span class="tool">Zotero MCP</span>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-node">
-                        <span class="emoji">📝</span>
-                        <span class="name">技术文档</span>
-                        <span class="tool">Lark CLI</span>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-node">
-                        <span class="emoji">🐍</span>
-                        <span class="name">数据分析</span>
-                        <span class="tool">Python MCP</span>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-node">
-                        <span class="emoji">📄</span>
-                        <span class="name">论文撰写</span>
-                        <span class="tool">Word MCP</span>
+                    <div class="screenshot-placeholder">
+                        <div class="screenshot-mock">
+                            <div class="mock-sidebar">
+                                <div class="mock-logo"></div>
+                                <div class="mock-nav-item active"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                            </div>
+                            <div class="mock-main">
+                                <div class="mock-progress">
+                                    <div class="mock-progress-bar"></div>
+                                </div>
+                                <div class="mock-card">
+                                    <div class="mock-card-title"></div>
+                                    <div class="mock-lines">
+                                        <div class="mock-line"></div>
+                                        <div class="mock-line"></div>
+                                        <div class="mock-line"></div>
+                                        <div class="mock-line"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="screenshot-label">📸 Web Demo 界面预览</div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="section">
-            <h2><span class="icon">⚡</span> 核心功能</h2>
-            <div class="features">
+        <section id="features" class="section reveal">
+            <div class="section-header">
+                <div class="section-badge">⚡ 核心功能</div>
+                <h2 class="section-title">六大核心能力，助力科研创新</h2>
+                <p class="section-desc">从文献调研到成果导出，全流程智能化，让你专注于真正有价值的创新工作</p>
+            </div>
+            <div class="features-grid">
                 <div class="feature-card">
-                    <div class="icon">🔍</div>
-                    <h3>智能文献调研</h3>
-                    <p>调用 Trae Skill 进行网络检索，自动解析论文并提取关键信息，一键同步至 Zotero 文献库</p>
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">智能文献调研</h3>
+                    <p class="feature-desc">
+                        自动检索多学术数据库文献，智能解析摘要与关键词，生成文献综述矩阵，
+                        一键同步至 Zotero 文献库，快速把握研究前沿与热点。
+                    </p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">📊</div>
-                    <h3>自动化文档生成</h3>
-                    <p>基于 Zotero 文献库自动生成技术调研文档、文献综述、研究背景章节</p>
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">AI 对话助手</h3>
+                    <p class="feature-desc">
+                        与 AI 助手实时交流研究思路，讨论技术方案，获取专业建议。
+                        支持自然语言指令，激发创新灵感，快速迭代研究想法。
+                    </p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">🔬</div>
-                    <h3>实验方案辅助</h3>
-                    <p>读取技术文档，结合研究目标生成实验方案建议，辅助研究设计</p>
+                    <div class="feature-icon">🔀</div>
+                    <h3 class="feature-title">可视化工作流</h3>
+                    <p class="feature-desc">
+                        拖拽式流程编排，8步科研工作流可视化展示，实时进度追踪。
+                        支持自定义 pipeline，灵活适配不同研究场景需求。
+                    </p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">📈</div>
-                    <h3>数据处理管道</h3>
-                    <p>自动执行 Python 数据处理脚本，生成图表并格式化结果</p>
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">研究思路生成</h3>
+                    <p class="feature-desc">
+                        基于文献分析自动生成研究脑图和创新思路，构建结构化论文大纲，
+                        设计科学合理的实验方案，让研究框架更加清晰。
+                    </p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">✍️</div>
-                    <h3>论文文档导出</h3>
-                    <p>将处理结果、图表、结论自动填充至 Word 模板，生成可投稿文档</p>
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">数据分析管道</h3>
+                    <p class="feature-desc">
+                        自动生成数据分析代码，可视化实验结果，执行统计检验。
+                        支持 Python 脚本运行，一键生成专业图表和分析报告。
+                    </p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">🔗</span></div>
-                    <h3>MCP 工具串联</h3>
-                    <p>通过 MCP 协议连接 Zotero、Lark、Python、Word 等工具，保证稳定性</p>
+                    <div class="feature-icon">📄</div>
+                    <h3 class="feature-title">论文一键导出</h3>
+                    <p class="feature-desc">
+                        Word 格式论文初稿自动生成，BibTeX 参考文献排版，
+                        技术报告、实验方案、项目数据一键打包下载。
+                    </p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="section">
-            <h2><span class="icon">👤</span> 典型用户流程</h2>
-            <div class="user-flow">
-                <ol>
-                    <li>
-                        <div class="step-title">"帮我调研 ROS2 导航相关的最新论文"</div>
-                        <div class="step-desc">→ Trae Skill 检索 arXiv/Google Scholar → 自动解析摘要 → 一键入库 Zotero</div>
-                    </li>
-                    <li>
-                        <div class="step-title">"生成技术调研文档"</div>
-                        <div class="step-desc">→ 读取 Zotero 文献 → Lark CLI 创建云文档 → 生成 Markdown 技术报告</div>
-                    </li>
-                    <li>
-                        <div class="step-title">"分析现有方案的优缺点"</div>
-                        <div class="step-desc">→ 读取 Lark 文档 → 结合文献 → 生成实验方案建议</div>
-                    </li>
-                    <li>
-                        <div class="step-title">"处理实验数据，生成对比图表"</div>
-                        <div class="step-desc">→ Python MCP 执行数据处理 → 自动生成 PNG/SVG 图表</div>
-                    </li>
-                    <li>
-                        <div class="step-title">"导出论文初稿"</div>
-                        <div class="step-desc">→ Word MCP 填充内容 → 生成格式规范的论文文档</div>
-                    </li>
-                </ol>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🎯</span> 技术栈</h2>
-            <div class="tech-stack">
-                <span class="tech-badge">Python 3.10+</span>
-                <span class="tech-badge">MCP Protocol</span>
-                <span class="tech-badge">Trae Skill</span>
-                <span class="tech-badge">Zotero API</span>
-                <span class="tech-badge">Lark CLI</span>
-                <span class="tech-badge">python-docx</span>
-                <span class="tech-badge">Click CLI</span>
-                <span class="tech-badge">Pydantic</span>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">💎</span> 价值与意义</h2>
-            <div class="value-cards">
-                <div class="value-card">
-                    <div class="icon">⚡</div>
-                    <h3>效率提升</h3>
-                    <p>将文献调研→文档生成→数据分析→论文撰写的手动切换时间从数天缩短至小时级</p>
+        <section id="workflow" class="workflow-section reveal">
+            <div class="workflow-container">
+                <div class="section-header">
+                    <div class="section-badge">🔄 工作流</div>
+                    <h2 class="section-title">八步科研工作流，全流程自动化</h2>
+                    <p class="section-desc">从选题到投稿，一个指令完成全流程，让科研效率提升 10 倍</p>
                 </div>
-                <div class="value-card">
-                    <div class="icon">🌍</div>
-                    <h3>科研平权</h3>
-                    <p>降低科研工具学习成本，让更多研究者专注于创新本身而非重复劳动</p>
-                </div>
-                <div class="value-card">
-                    <div class="icon">🔌</div>
-                    <h3>生态整合</h3>
-                    <p> MCP 协议示范应用，推动 AI 工具生态在科研领域的标准化串联</p>
+                <div class="workflow-visual">
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">1</div>
+                        <div class="workflow-step-icon">💡</div>
+                        <div class="workflow-step-name">需求理解</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">2</div>
+                        <div class="workflow-step-icon">🔍</div>
+                        <div class="workflow-step-name">文献检索</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">3</div>
+                        <div class="workflow-step-icon">📊</div>
+                        <div class="workflow-step-name">文献分析</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">4</div>
+                        <div class="workflow-step-icon">🧠</div>
+                        <div class="workflow-step-name">思路生成</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">5</div>
+                        <div class="workflow-step-icon">📋</div>
+                        <div class="workflow-step-name">大纲构建</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">6</div>
+                        <div class="workflow-step-icon">🔬</div>
+                        <div class="workflow-step-name">实验设计</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">7</div>
+                        <div class="workflow-step-icon">✍️</div>
+                        <div class="workflow-step-name">文档撰写</div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="workflow-step-num">8</div>
+                        <div class="workflow-step-icon">📦</div>
+                        <div class="workflow-step-name">成果导出</div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="footer">
-            <p>SciFlow — 让每个研究者都能拥有自己的 AI 科研助理</p>
-        </div>
+        <section id="innovation" class="section reveal">
+            <div class="section-header">
+                <div class="section-badge">💎 创新亮点</div>
+                <h2 class="section-title">三大核心创新，重新定义科研工具</h2>
+                <p class="section-desc">不止是工具，更是科研工作方式的革新</p>
+            </div>
+            <div class="innovation-grid">
+                <div class="innovation-card">
+                    <span class="innovation-icon">🌐</span>
+                    <h3 class="innovation-title">开箱即用 Web Demo</h3>
+                    <p class="innovation-desc">
+                        无需安装配置，打开浏览器即可体验完整功能。单文件 HTML 设计，
+                        支持离线使用，Mock 模式零配置演示，让每个人都能快速上手。
+                    </p>
+                </div>
+                <div class="innovation-card">
+                    <span class="innovation-icon">🎨</span>
+                    <h3 class="innovation-title">可视化工作流编排</h3>
+                    <p class="innovation-desc">
+                        科技感十足的可视化工作流界面，实时进度展示，节点动画效果。
+                        8步科研流程清晰可见，每一步都有明确的产出和反馈。
+                    </p>
+                </div>
+                <div class="innovation-card">
+                    <span class="innovation-icon">🤖</span>
+                    <h3 class="innovation-title">AI 对话式交互</h3>
+                    <p class="innovation-desc">
+                        用自然语言描述研究需求，AI 自动理解并执行全流程。
+                        打字机效果回复，预设快捷指令，让科研沟通像聊天一样简单。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="quickstart" class="quickstart-section reveal">
+            <div class="quickstart-container">
+                <div class="section-header">
+                    <div class="section-badge">🚀 快速开始</div>
+                    <h2 class="section-title">两种使用方式，任你选择</h2>
+                    <p class="section-desc">30 秒上手，立即体验智能科研工作流</p>
+                </div>
+                <div class="quickstart-grid">
+                    <div class="quickstart-card">
+                        <span class="quickstart-badge web">✨ 推荐</span>
+                        <h3 class="quickstart-title">Web Demo 在线体验</h3>
+                        <p class="quickstart-desc">
+                            无需任何安装，直接在浏览器中体验完整功能，
+                            支持自动演示，一键查看完整工作流效果。
+                        </p>
+                        <ul class="quickstart-steps">
+                            <li>
+                                <span class="quickstart-step-num">1</span>
+                                <span>下载或直接打开 <code>sciflow_demo.html</code></span>
+                            </li>
+                            <li>
+                                <span class="quickstart-step-num">2</span>
+                                <span>点击「自动演示」或输入研究主题</span>
+                            </li>
+                            <li>
+                                <span class="quickstart-step-num">3</span>
+                                <span>观看工作流自动执行，查看生成成果</span>
+                            </li>
+                        </ul>
+                        <a href="sciflow_demo.html" class="btn-primary" style="width: 100%; justify-content: center;">
+                            <span>🎮</span>
+                            <span>打开 Web Demo</span>
+                        </a>
+                    </div>
+                    <div class="quickstart-card">
+                        <span class="quickstart-badge cli">💻 开发者</span>
+                        <h3 class="quickstart-title">pip 安装 CLI 工具</h3>
+                        <p class="quickstart-desc">
+                            Python CLI 版本，支持 MCP/Skill 协议，
+                            可集成到 Trae 等开发环境，串联真实工具生态。
+                        </p>
+                        <div class="code-block">pip install -e .</div>
+                        <ul class="quickstart-steps">
+                            <li>
+                                <span class="quickstart-step-num">1</span>
+                                <span>克隆 GitHub 仓库到本地</span>
+                            </li>
+                            <li>
+                                <span class="quickstart-step-num">2</span>
+                                <span>使用 pip 安装开发版本</span>
+                            </li>
+                            <li>
+                                <span class="quickstart-step-num">3</span>
+                                <span>运行 <code>sciflow pipeline run</code> 启动全流程</span>
+                            </li>
+                        </ul>
+                        <a href="https://github.com/Yhx888/sciflow" target="_blank" class="btn-secondary" style="width: 100%; justify-content: center;">
+                            <span>📦</span>
+                            <span>查看 GitHub 仓库</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-section reveal">
+            <div class="tech-container">
+                <div class="section-header">
+                    <div class="section-badge">🛠️ 技术栈</div>
+                    <h2 class="section-title">现代化技术架构</h2>
+                    <p class="section-desc">基于成熟技术栈构建，稳定可靠，易于扩展</p>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-badge">
+                        <span class="tech-icon">🐍</span>
+                        <span>Python 3.10+</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">🖱️</span>
+                        <span>Click CLI</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">✅</span>
+                        <span>Pydantic</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">📝</span>
+                        <span>python-docx</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">📚</span>
+                        <span>Zotero API</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">🐦</span>
+                        <span>Lark CLI</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">🔗</span>
+                        <span>MCP Protocol</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">🎯</span>
+                        <span>Trae Skill</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">🌐</span>
+                        <span>HTML/CSS/JS</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">📦</span>
+                        <span>JSZip</span>
+                    </div>
+                    <div class="tech-badge">
+                        <span class="tech-icon">📑</span>
+                        <span>Marked.js</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span>S</span>
+                    <span>SciFlow</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 16px;">
+                    让每个研究者都能拥有自己的 AI 科研助理
+                </p>
+                <div class="footer-links">
+                    <a href="https://github.com/Yhx888/sciflow" target="_blank" class="footer-link">
+                        <span>⭐</span>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="sciflow_demo.html" class="footer-link">
+                        <span>🎮</span>
+                        <span>Web Demo</span>
+                    </a>
+                    <a href="https://github.com/Yhx888/sciflow/blob/main/LICENSE" target="_blank" class="footer-link">
+                        <span>📜</span>
+                        <span>MIT License</span>
+                    </a>
+                </div>
+                <div class="footer-copyright">
+                    © 2025 SciFlow. Made with ❤️ for researchers.
+                </div>
+                <div class="footer-license">
+                    Released under the MIT License. Trae 创意大赛参赛作品.
+                </div>
+            </div>
+        </footer>
     </div>
+
+    <script>
+        function reveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(element => {
+                const windowHeight = window.innerHeight;
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', reveal);
+        window.addEventListener('load', reveal);
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
