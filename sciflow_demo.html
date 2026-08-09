@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SciFlow — AI 科研全流程智能工作台</title>
+<meta name="description" content="SciFlow：从文献调研到论文撰写，AI 驱动的科研全流程智能工作台。单文件零依赖，开箱即用。">
+<style>
+/* ============ 设计系统（苹果风格） ============ */
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-mono:"SF Mono","Fira Code",Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.25,.1,.25,1);
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:999px;
+  --bg-primary:#fff;--bg-secondary:#f5f5f7;--bg-tertiary:#fafafa;
+  --bg-hover:rgba(0,0,0,.045);--bg-active:rgba(0,0,0,.07);
+  --text-primary:#1d1d1f;--text-secondary:#6e6e73;--text-tertiary:#a1a1a6;
+  --border:rgba(0,0,0,.08);--border-strong:rgba(0,0,0,.14);
+  --accent:#0071e3;--accent-hover:#0077ed;--accent-soft:rgba(0,113,227,.1);
+  --success:#34c759;--success-soft:rgba(52,199,89,.12);
+  --warning:#ff9f0a;--warning-soft:rgba(255,159,10,.14);
+  --danger:#ff3b30;--danger-soft:rgba(255,59,48,.1);
+  --gradient:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);--shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.14);
+  --glass:rgba(255,255,255,.72);
+  --sidebar-w:264px;
+}
+[data-theme="dark"]{
+  --bg-primary:#1d1d1f;--bg-secondary:#2d2d2f;--bg-tertiary:#262628;
+  --bg-hover:rgba(255,255,255,.08);--bg-active:rgba(255,255,255,.12);
+  --text-primary:#f5f5f7;--text-secondary:#a1a1a6;--text-tertiary:#6e6e73;
+  --border:rgba(255,255,255,.1);--border-strong:rgba(255,255,255,.2);
+  --accent:#2997ff;--accent-soft:rgba(41,151,255,.15);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-md:0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.55);
+  --glass:rgba(29,29,31,.72);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);
+  -webkit-font-smoothing:antialiased;overflow:hidden;font-size:15px;line-height:1.55;
+  transition:background .3s var(--ease),color .3s var(--ease);
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+input,textarea{font-family:inherit;color:inherit}
+::selection{background:var(--accent-soft)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============ 布局 ============ */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--bg-secondary);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  transition:width .25s var(--ease),background .3s var(--ease);
+}
+.sidebar.collapsed{width:64px}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .side-footer-text{display:none}
+.logo{display:flex;align-items:center;gap:10px;padding:18px 16px;cursor:pointer;user-select:none}
+.logo-icon{
+  width:34px;height:34px;border-radius:9px;background:var(--gradient);
+  display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;
+  box-shadow:0 4px 12px rgba(102,126,234,.4);flex-shrink:0;
+}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
+.logo-tag{font-size:10px;color:var(--text-tertiary);letter-spacing:.4px}
+.nav{flex:1;padding:8px 10px;overflow-y:auto}
+.nav-item{
+  display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;border-radius:9px;
+  color:var(--text-secondary);font-size:14px;margin-bottom:2px;transition:all .18s var(--ease);
+  text-align:left;white-space:nowrap;
+}
+.nav-item:hover{background:var(--bg-hover);color:var(--text-primary)}
+.nav-item.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.footer-btn{
+  width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--text-secondary);transition:all .18s var(--ease);
+}
+.footer-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.side-footer-text{font-size:11px;color:var(--text-tertiary);margin-left:auto;padding-right:4px;white-space:nowrap}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-primary)}
+
+/* ============ 顶部 ============ */
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);
+  background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  z-index:10;flex-shrink:0;
+}
+.topbar-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.topbar-sub{font-size:12px;color:var(--text-tertiary);margin-top:1px}
+.stepper{display:flex;align-items:center;gap:0;flex:1;justify-content:center;overflow:hidden}
+.step{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.step-dot{
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;background:var(--bg-active);color:var(--text-tertiary);
+  transition:all .35s var(--ease);position:relative;flex-shrink:0;
+}
+.step.active .step-dot{background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft);animation:pulse 1.6s infinite}
+.step.done .step-dot{background:var(--success);color:#fff}
+.step-label{font-size:12px;color:var(--text-tertiary);white-space:nowrap;transition:color .3s}
+.step.active .step-label{color:var(--text-primary);font-weight:600}
+.step.done .step-label{color:var(--text-secondary)}
+.step-line{width:26px;height:2px;background:var(--bg-active);margin:0 6px;border-radius:1px;flex-shrink:0;overflow:hidden;position:relative}
+.step-line.fill::after{content:"";position:absolute;inset:0;background:var(--success);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease)}
+.step-line.fill.done::after{transform:scaleX(1)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--accent-soft)}70%{box-shadow:0 0 0 9px rgba(0,113,227,0)}100%{box-shadow:0 0 0 0 rgba(0,113,227,0)}}
+.topbar-actions{display:flex;gap:6px}
+.ghost-btn{
+  padding:7px 14px;border-radius:9px;font-size:13px;color:var(--text-secondary);
+  border:1px solid var(--border);transition:all .18s var(--ease);white-space:nowrap;
+}
+.ghost-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.primary-btn{
+  padding:8px 18px;border-radius:9px;font-size:13px;font-weight:600;color:#fff;
+  background:var(--accent);transition:all .18s var(--ease);white-space:nowrap;
+}
+.primary-btn:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,113,227,.35)}
+.primary-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ============ 欢迎页 ============ */
+.view{display:none;flex:1;min-height:0}
+.view.active{display:flex;flex-direction:column}
+.hero{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 24px;text-align:center;overflow-y:auto;position:relative;
+}
+.hero::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background:radial-gradient(800px 400px at 50% -10%,var(--accent-soft),transparent 70%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:var(--radius-full);
+  background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;margin-bottom:22px;
+}
+.hero-title{font-size:44px;font-weight:800;letter-spacing:-1.5px;line-height:1.15;background:var(--gradient);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:16px;color:var(--text-secondary);margin-top:14px;max-width:520px}
+.hero-input-wrap{width:100%;max-width:680px;margin-top:36px}
+.hero-input{
+  width:100%;padding:17px 20px;border-radius:var(--radius-lg);font-size:15px;resize:none;
+  background:var(--bg-primary);border:1.5px solid var(--border);box-shadow:var(--shadow-md);
+  transition:all .2s var(--ease);outline:none;min-height:56px;
+}
+.hero-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;max-width:680px}
+.chip{
+  padding:7px 14px;border-radius:var(--radius-full);font-size:12.5px;color:var(--text-secondary);
+  border:1px solid var(--border);background:var(--bg-tertiary);transition:all .18s var(--ease);
+}
+.chip:hover{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.hero-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:820px;margin-top:38px}
+.quick-card{
+  padding:20px 16px;border-radius:var(--radius-lg);background:var(--bg-primary);
+  border:1px solid var(--border);text-align:left;transition:all .2s var(--ease);
+  box-shadow:var(--shadow-sm);
+}
+.quick-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--border-strong)}
+.quick-card:active{transform:translateY(-1px)}
+.quick-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px;background:var(--accent-soft)}
+.quick-title{font-size:14px;font-weight:700}
+.quick-desc{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.45}
+.hero-footer{margin-top:44px;font-size:11.5px;color:var(--text-tertiary)}
+.hero-footer b{color:var(--accent)}
+
+/* ============ 工作台 ============ */
+.workspace{flex:1;display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;gap:2px;padding:0 20px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.tab{
+  padding:12px 16px;font-size:13.5px;color:var(--text-secondary);border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all .18s var(--ease);white-space:nowrap;display:flex;align-items:center;gap:7px;
+}
+.tab:hover{color:var(--text-primary)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-badge{font-size:10px;background:var(--accent-soft);color:var(--accent);padding:1px 7px;border-radius:var(--radius-full);font-weight:700}
+.panel{display:none;flex:1;min-height:0;flex-direction:column}
+.panel.active{display:flex}
+.panel-body{flex:1;overflow-y:auto;padding:20px 24px}
+.panel-body.padded-bottom{padding-bottom:100px}
+
+/* 对话 */
+.chat-list{display:flex;flex-direction:column;gap:18px;max-width:820px;margin:0 auto}
+.msg{display:flex;gap:12px;animation:msgIn .3s var(--ease)}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.msg.user .msg-avatar{background:var(--accent);color:#fff}
+.msg.ai .msg-avatar{background:var(--gradient);color:#fff}
+.msg-bubble{
+  padding:12px 16px;border-radius:var(--radius-lg);font-size:14px;line-height:1.65;
+  background:var(--bg-secondary);border:1px solid var(--border);max-width:86%;
+  overflow-wrap:break-word;
+}
+.msg.user .msg-bubble{background:var(--accent-soft);border-color:transparent}
+.msg-bubble p{margin:6px 0}
+.msg-bubble p:first-child{margin-top:0}
+.msg-bubble p:last-child{margin-bottom:0}
+.msg-bubble h1,.msg-bubble h2,.msg-bubble h3{margin:10px 0 6px;line-height:1.3}
+.msg-bubble h1{font-size:18px}.msg-bubble h2{font-size:16px}.msg-bubble h3{font-size:15px}
+.msg-bubble ul,.msg-bubble ol{padding-left:20px;margin:6px 0}
+.msg-bubble code{font-family:var(--font-mono);font-size:12.5px;background:var(--bg-active);padding:1.5px 6px;border-radius:5px}
+.msg-bubble pre{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;padding:12px 14px;overflow-x:auto;margin:8px 0}
+.msg-bubble pre code{background:none;padding:0}
+.msg-bubble blockquote{border-left:3px solid var(--accent);padding-left:12px;color:var(--text-secondary);margin:8px 0}
+.msg-bubble table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%}
+.msg-bubble th,.msg-bubble td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+.msg-bubble th{background:var(--bg-tertiary)}
+.cursor-blink{display:inline-block;width:7px;height:15px;background:var(--accent);border-radius:2px;animation:blink 1s step-end infinite;vertical-align:-2px}
+@keyframes blink{50%{opacity:0}}
+.typing-dots{display:inline-flex;gap:4px;padding:4px 2px}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--text-tertiary);animation:dot 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.result-card{
+  margin-top:10px;border-radius:var(--radius-md);border:1px solid var(--border);
+  background:var(--bg-primary);overflow:hidden;
+}
+.result-card-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);background:var(--bg-tertiary)}
+.result-card-body{padding:12px 14px;font-size:13px;color:var(--text-secondary)}
+.result-card-body ul{padding-left:18px;margin:4px 0}
+.result-card-body li{margin:3px 0}
+
+/* 输入区 */
+.composer{
+  flex-shrink:0;padding:14px 24px 18px;background:linear-gradient(transparent,var(--bg-primary) 30%);
+  position:sticky;bottom:0;
+}
+.composer-wrap{max-width:820px;margin:0 auto;position:relative}
+.composer-box{
+  display:flex;align-items:flex-end;gap:10px;padding:10px 10px 10px 18px;border-radius:var(--radius-lg);
+  background:var(--bg-primary);border:1.5px solid var(--border);box-shadow:var(--shadow-md);
+  transition:all .2s var(--ease);
+}
+.composer-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.composer-input{flex:1;border:none;outline:none;resize:none;background:none;font-size:14.5px;line-height:1.5;max-height:140px;padding:6px 0}
+.send-btn{
+  width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all .18s var(--ease);
+}
+.send-btn:hover{background:var(--accent-hover);transform:scale(1.05)}
+.send-btn:disabled{background:var(--bg-active);color:var(--text-tertiary);cursor:not-allowed;transform:none}
+.composer-hint{text-align:center;font-size:11px;color:var(--text-tertiary);margin-top:8px}
+.composer-hint kbd{font-family:var(--font-mono);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:4px;padding:0 5px;font-size:10px}
+
+/* 文献 */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.section-title{font-size:17px;font-weight:700;letter-spacing:-.2px}
+.section-sub{font-size:12.5px;color:var(--text-tertiary);margin-top:2px}
+.search-bar{display:flex;gap:8px;flex:1;max-width:420px}
+.search-input{
+  flex:1;padding:9px 14px;border-radius:9px;font-size:13.5px;border:1.5px solid var(--border);
+  background:var(--bg-primary);outline:none;transition:all .18s var(--ease);
+}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lit-list{display:flex;flex-direction:column;gap:10px;max-width:900px;margin:0 auto}
+.lit-card{
+  padding:16px 18px;border-radius:var(--radius-md);border:1px solid var(--border);
+  background:var(--bg-primary);transition:all .2s var(--ease);animation:msgIn .35s var(--ease);
+}
+.lit-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-sm)}
+.lit-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lit-title{font-size:14.5px;font-weight:700;line-height:1.4;color:var(--text-primary)}
+.lit-meta{font-size:12px;color:var(--text-secondary);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lit-meta .badge{background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:var(--radius-full);font-weight:600;font-size:11px}
+.lit-meta .year{font-family:var(--font-mono);font-size:11.5px}
+.lit-abstract{font-size:13px;color:var(--text-secondary);margin-top:10px;line-height:1.6;display:none}
+.lit-card.expanded .lit-abstract{display:block}
+.lit-actions{display:flex;gap:6px;margin-top:10px}
+.mini-btn{
+  padding:5px 12px;border-radius:7px;font-size:12px;color:var(--text-secondary);
+  border:1px solid var(--border);transition:all .15s var(--ease);
+}
+.mini-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.mini-btn.primary{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.lit-loading{text-align:center;padding:60px 0;color:var(--text-tertiary)}
+.lit-loading .spinner{
+  width:34px;height:34px;border-radius:50%;border:3px solid var(--bg-active);border-top-color:var(--accent);
+  margin:0 auto 14px;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.matrix-wrap{overflow-x:auto;border-radius:var(--radius-md);border:1px solid var(--border);max-width:1000px;margin:0 auto}
+.matrix-table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+.matrix-table th,.matrix-table td{padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.matrix-table th{background:var(--bg-tertiary);font-weight:600;color:var(--text-secondary);white-space:nowrap;position:sticky;top:0}
+.matrix-table tr:hover td{background:var(--bg-hover)}
+.matrix-table .cell-method{color:var(--text-secondary);font-size:12px;line-height:1.5}
+
+/* 脑图 */
+.mindmap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.mm-root{
+  padding:12px 26px;border-radius:var(--radius-lg);background:var(--gradient);color:#fff;
+  font-size:14.5px;font-weight:700;box-shadow:0 8px 24px rgba(102,126,234,.35);
+}
+.mm-node{
+  padding:8px 18px;border-radius:var(--radius-md);background:var(--bg-primary);
+  border:1px solid var(--border);font-size:13px;cursor:pointer;transition:all .18s var(--ease);
+  position:relative;box-shadow:var(--shadow-sm);min-width:140px;text-align:left;
+}
+.mm-node:hover{border-color:var(--accent);transform:translateX(3px)}
+.mm-node .mm-children{display:none;margin-top:10px;margin-left:14px;padding-left:14px;border-left:2px solid var(--border);gap:8px;flex-direction:column}
+.mm-node.open .mm-children{display:flex}
+.mm-node.open{border-color:var(--accent);background:var(--accent-soft)}
+.mm-toggle{float:right;font-size:10px;color:var(--text-tertiary);margin-left:10px}
+.mm-leaf{font-size:12.5px;color:var(--text-secondary)}
+
+/* 大纲 */
+.outline-editor{
+  width:100%;min-height:420px;padding:20px 24px;border-radius:var(--radius-lg);
+  border:1.5px solid var(--border);background:var(--bg-primary);font-size:14px;line-height:1.75;
+  resize:vertical;outline:none;font-family:var(--font-sans);transition:all .2s var(--ease);
+  max-width:900px;display:block;margin:0 auto;
+}
+.outline-editor:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+
+/* 实验设计 */
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:1000px;margin:0 auto}
+.exp-card{
+  padding:20px;border-radius:var(--radius-lg);border:1px solid var(--border);
+  background:var(--bg-primary);transition:all .2s var(--ease);box-shadow:var(--shadow-sm);
+}
+.exp-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.exp-card-title{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.exp-card-body{font-size:13px;color:var(--text-secondary);line-height:1.65}
+.exp-card-body ul{padding-left:18px;margin:4px 0}
+.exp-tag{font-size:10.5px;background:var(--success-soft);color:var(--success);padding:2px 8px;border-radius:var(--radius-full);font-weight:700;margin-left:auto}
+
+/* 报告 */
+.report-preview{
+  max-width:900px;margin:0 auto;padding:36px 44px;border-radius:var(--radius-lg);
+  background:var(--bg-primary);border:1px solid var(--border);box-shadow:var(--shadow-sm);
+  font-size:14px;line-height:1.75;
+}
+.report-preview h1{font-size:24px;margin-bottom:8px;letter-spacing:-.5px}
+.report-preview h2{font-size:18px;margin:20px 0 8px}
+.report-preview h3{font-size:15px;margin:14px 0 6px}
+.report-preview p{margin:8px 0}
+.report-preview ul,.report-preview ol{padding-left:22px;margin:8px 0}
+.report-preview code{font-family:var(--font-mono);font-size:12.5px;background:var(--bg-active);padding:1.5px 6px;border-radius:5px}
+.report-meta{display:flex;gap:16px;font-size:12px;color:var(--text-tertiary);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+
+/* 空状态 */
+.empty-state{text-align:center;padding:70px 20px;color:var(--text-tertiary)}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.7}
+.empty-title{font-size:15px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+.empty-desc{font-size:13px}
+
+/* 模态 */
+.modal-mask{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s var(--ease);
+}
+.modal-mask.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  width:min(480px,92vw);max-height:86vh;overflow-y:auto;background:var(--bg-primary);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:26px;animation:popIn .25s var(--ease);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12.5px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;display:block}
+.form-input{
+  width:100%;padding:10px 14px;border-radius:9px;font-size:13.5px;border:1.5px solid var(--border);
+  background:var(--bg-primary);outline:none;transition:all .18s var(--ease);
+}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.form-select{
+  width:100%;padding:10px 14px;border-radius:9px;font-size:13.5px;border:1.5px solid var(--border);
+  background:var(--bg-primary);outline:none;appearance:none;cursor:pointer;
+}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.field-hint{font-size:11.5px;color:var(--text-tertiary);margin-top:5px;line-height:1.5}
+.conn-status{font-size:12px;padding:3px 0}
+.conn-status.ok{color:var(--success)}.conn-status.fail{color:var(--danger)}
+.badge-mock{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:var(--warning-soft);color:var(--warning);padding:2px 9px;border-radius:var(--radius-full);font-weight:700}
+
+/* 通知 */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--text-primary);color:var(--bg-primary);padding:10px 22px;border-radius:var(--radius-full);
+  font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);z-index:2000;opacity:0;pointer-events:none;
+  transition:all .3s var(--ease);max-width:86vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 响应式 */
+@media (max-width:1080px){
+  .hero-cards{grid-template-columns:repeat(2,1fr)}
+  .stepper{display:none}
+}
+@media (max-width:760px){
+  .sidebar{position:fixed;z-index:500;height:100%;box-shadow:var(--shadow-lg)}
+  .sidebar.collapsed{transform:translateX(-100%)}
+  .hero-title{font-size:32px}
+  .hero-cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== 侧边栏 ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo" onclick="UI.toggleSidebar()">
+      <div class="logo-icon">🧬</div>
+      <div>
+        <div class="logo-name">SciFlow</div>
+        <div class="logo-tag">AI 科研工作台</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="chat" onclick="UI.switchView('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="nav-label">对话研究</span>
+      </button>
+      <button class="nav-item" data-view="literature" onclick="UI.switchView('literature')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-label">文献调研</span>
+      </button>
+      <button class="nav-item" data-view="outline" onclick="UI.switchView('outline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-label">论文大纲</span>
+      </button>
+      <button class="nav-item" data-view="experiment" onclick="UI.switchView('experiment')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6.5L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9.5V3"/></svg>
+        <span class="nav-label">实验设计</span>
+      </button>
+      <button class="nav-item" data-view="report" onclick="UI.switchView('report')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        <span class="nav-label">研究报告</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="footer-btn" onclick="UI.toggleTheme()" title="切换主题" id="themeBtn">🌙</button>
+      <button class="footer-btn" onclick="UI.openSettings()" title="AI 设置">⚙️</button>
+      <span class="side-footer-text" id="modeBadge"><span class="badge-mock">⚡ 演示模式</span></span>
+    </div>
+  </aside>
+
+  <!-- ===== 主区 ===== -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="projectTitle">SciFlow 科研工作台</div>
+        <div class="topbar-sub" id="topbarSub">欢迎使用 · 输入研究方向开始</div>
+      </div>
+      <div class="stepper" id="stepper"></div>
+      <div class="topbar-actions">
+        <button class="ghost-btn" onclick="App.exportAll()" id="exportBtn">📦 导出成果</button>
+        <button class="primary-btn" onclick="App.autoDemo()" id="demoBtn">▶ 自动演示</button>
+      </div>
+    </header>
+
+    <!-- 欢迎页 -->
+    <div class="view active" id="view-hero">
+      <div class="hero">
+        <div class="hero-badge">✨ AI 驱动的科研全流程智能工作台</div>
+        <h1 class="hero-title">让科研回归创新本身</h1>
+        <p class="hero-sub">从文献调研到论文撰写，8 步自动化科研流程，一站式完成。<br>支持 6 大 LLM 提供商，本地数据优先，隐私安全。</p>
+        <div class="hero-input-wrap">
+          <textarea class="hero-input" id="heroInput" rows="2"
+            placeholder="描述你的研究方向，例如：大语言模型推理优化…"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.startResearch()}"></textarea>
+          <div class="chips" id="chips"></div>
+        </div>
+        <div class="hero-cards">
+          <button class="quick-card" onclick="App.quickStart('literature')">
+            <div class="quick-icon">🔍</div>
+            <div class="quick-title">文献调研</div>
+            <div class="quick-desc">智能检索、矩阵对比、引用导出</div>
+          </button>
+          <button class="quick-card" onclick="App.quickStart('outline')">
+            <div class="quick-icon">📋</div>
+            <div class="quick-title">论文大纲</div>
+            <div class="quick-desc">标准学术结构，一键生成可编辑</div>
+          </button>
+          <button class="quick-card" onclick="App.quickStart('experiment')">
+            <div class="quick-icon">🧪</div>
+            <div class="quick-title">实验设计</div>
+            <div class="quick-desc">对照组、指标、风险全方案</div>
+          </button>
+          <button class="quick-card" onclick="App.quickStart('report')">
+            <div class="quick-icon">📝</div>
+            <div class="quick-title">论文撰写</div>
+            <div class="quick-desc">Markdown / Word / BibTeX 导出</div>
+          </button>
+        </div>
+        <div class="hero-footer">Powered by <b>SciFlow Engine</b> · 支持 OpenAI / DeepSeek / 智谱 / 通义 / Ollama · <b id="footerMode">演示模式（Mock）</b></div>
+      </div>
+    </div>
+
+    <!-- 工作台 -->
+    <div class="view" id="view-workspace">
+      <div class="workspace">
+        <div class="tabs">
+          <button class="tab active" data-tab="chat" onclick="UI.switchTab('chat')">💬 对话</button>
+          <button class="tab" data-tab="literature" onclick="UI.switchTab('literature')">📚 文献 <span class="tab-badge" id="litCount">0</span></button>
+          <button class="tab" data-tab="mindmap" onclick="UI.switchTab('mindmap')">🧠 思路脑图</button>
+          <button class="tab" data-tab="outline" onclick="UI.switchTab('outline')">📋 大纲</button>
+          <button class="tab" data-tab="experiment" onclick="UI.switchTab('experiment')">🧪 实验</button>
+          <button class="tab" data-tab="report" onclick="UI.switchTab('report')">📄 报告</button>
+        </div>
+
+        <div class="panel active" id="panel-chat">
+          <div class="panel-body padded-bottom">
+            <div class="chat-list" id="chatList"></div>
+          </div>
+          <div class="composer">
+            <div class="composer-wrap">
+              <div class="composer-box">
+                <textarea class="composer-input" id="chatInput" rows="1"
+                  placeholder="继续对话：如「帮我生成论文大纲」「设计实验方案」…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.sendChat()}"
+                  oninput="UI.autoResize(this)"></textarea>
+                <button class="send-btn" onclick="App.sendChat()" id="chatSendBtn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+              <div class="composer-hint">Enter 发送 · Shift+Enter 换行 · 未配置 API Key 时使用内置演示引擎</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-literature">
+          <div class="panel-body padded-bottom">
+            <div class="section-head" style="max-width:1000px;margin:0 auto 16px">
+              <div>
+                <div class="section-title">文献调研</div>
+                <div class="section-sub" id="litSub">基于研究主题自动检索，支持引用格式导出</div>
+              </div>
+              <div class="search-bar">
+                <input class="search-input" id="litSearchInput" placeholder="搜索文献标题/摘要…" oninput="UI.filterLiterature(this.value)">
+                <button class="mini-btn primary" onclick="App.reSearch()">↻ 重新检索</button>
+              </div>
+            </div>
+            <div id="litContainer"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-mindmap">
+          <div class="panel-body padded-bottom">
+            <div class="section-head" style="max-width:900px;margin:0 auto 16px">
+              <div>
+                <div class="section-title">研究思路脑图</div>
+                <div class="section-sub">点击节点展开/折叠 · 从研究问题到技术路线</div>
+              </div>
+            </div>
+            <div class="mindmap" id="mindmapContainer"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-outline">
+          <div class="panel-body padded-bottom">
+            <div class="section-head" style="max-width:900px;margin:0 auto 16px">
+              <div>
+                <div class="section-title">论文大纲</div>
+                <div class="section-sub">AI 生成标准学术结构，可直接编辑修改</div>
+              </div>
+              <button class="mini-btn primary" onclick="App.regenerateOutline()">↻ 重新生成</button>
+            </div>
+            <textarea class="outline-editor" id="outlineEditor" spellcheck="false"
+              placeholder="运行工作流或对话生成大纲后，将在这里展示…"></textarea>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-experiment">
+          <div class="panel-body padded-bottom">
+            <div class="section-head" style="max-width:1000px;margin:0 auto 16px">
+              <div>
+                <div class="section-title">实验方案设计</div>
+                <div class="section-sub">研究问题 · 变量控制 · 评估指标 · 潜在风险</div>
+              </div>
+            </div>
+            <div class="exp-grid" id="expContainer"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-report">
+          <div class="panel-body padded-bottom">
+            <div class="section-head" style="max-width:900px;margin:0 auto 16px">
+              <div>
+                <div class="section-title">研究报告</div>
+                <div class="section-sub" id="reportSub">完整调研报告 · 支持 Markdown / Word / BibTeX 导出</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="mini-btn" onclick="App.downloadFile('report.md', State.report)">⬇ Markdown</button>
+                <button class="mini-btn" onclick="App.downloadFile('references.bib', State.bibtex)">⬇ BibTeX</button>
+                <button class="mini-btn primary" onclick="App.exportAll()">📦 打包 ZIP</button>
+              </div>
+            </div>
+            <div class="report-preview" id="reportPreview">
+              <div class="empty-state">
+                <div class="empty-icon">📄</div>
+                <div class="empty-title">暂无报告</div>
+                <div class="empty-desc">运行「自动演示」或通过对话生成完整调研报告</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 设置模态 -->
+<div class="modal-mask" id="settingsModal" onclick="if(event.target===this)UI.closeSettings()">
+  <div class="modal">
+    <div class="modal-title">⚙️ AI 模型设置</div>
+    <div class="form-group">
+      <label class="form-label">LLM 提供商</label>
+      <select class="form-select" id="providerSelect">
+        <option value="mock">🎭 演示模式（内置引擎，无需配置）</option>
+        <option value="deepseek">DeepSeek（推荐，国内可用）</option>
+        <option value="openai">OpenAI</option>
+        <option value="zhipu">智谱 GLM</option>
+        <option value="qwen">通义千问</option>
+        <option value="anthropic">Anthropic Claude</option>
+        <option value="ollama">Ollama（本地）</option>
+      </select>
+    </div>
+    <div class="form-group" id="apiKeyGroup">
+      <label class="form-label">API Key</label>
+      <input class="form-input" type="password" id="apiKeyInput" placeholder="sk-…">
+      <div class="field-hint" id="apiHint">真实 API 仅在你自己的浏览器中直连调用，Key 不经过任何服务器。</div>
+    </div>
+    <div class="form-group" id="baseUrlGroup">
+      <label class="form-label">API Base URL（可选）</label>
+      <input class="form-input" id="baseUrlInput" placeholder="留空使用默认地址">
+    </div>
+    <div class="form-group">
+      <div class="conn-status" id="connStatus"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost-btn" onclick="App.testConnection()">测试连接</button>
+      <button class="ghost-btn" onclick="UI.closeSettings()">取消</button>
+      <button class="primary-btn" onclick="App.saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+ * SciFlow 单文件 Demo —— 零后端 · 双击即开 · 可静态部署
+ * Mock 引擎 + 可选真实 LLM（OpenAI 兼容接口，浏览器直连）
+ * ============================================================ */
+
+/* ---------- 状态 ---------- */
+const State = {
+  topic: "",
+  literature: [],          // 文献列表
+  matrix: [],              // 文献矩阵（method/metrics/dataset/result）
+  outline: "",             // 大纲 Markdown
+  experiments: null,       // 实验方案
+  report: "",              // 报告 Markdown
+  bibtex: "",              // BibTeX
+  workflowRunning: false,
+  chatBusy: false,
+  theme: localStorage.getItem("sf_theme") || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"),
+  settings: JSON.parse(localStorage.getItem("sf_settings") || "{}"),
+};
+
+const WORKFLOW_STEPS = [
+  { icon:"🎯", name:"需求理解", desc:"分析研究主题，明确目标与关键问题" },
+  { icon:"🔍", name:"文献检索", desc:"检索相关学术文献，建立文献库" },
+  { icon:"📊", name:"文献分析", desc:"矩阵对比，总结研究现状与趋势" },
+  { icon:"💡", name:"思路生成", desc:"基于文献分析探索创新研究点" },
+  { icon:"📋", name:"大纲构建", desc:"生成标准学术论文框架" },
+  { icon:"🧪", name:"实验设计", desc:"制定实验方案与评估指标" },
+  { icon:"✍️", name:"文档撰写", desc:"撰写完整调研报告初稿" },
+  { icon:"📦", name:"成果导出", desc:"Markdown / Word / BibTeX 打包" },
+];
+
+const PROVIDERS = {
+  deepseek:  { base:"https://api.deepseek.com/v1", model:"deepseek-chat" },
+  openai:    { base:"https://api.openai.com/v1", model:"gpt-4o-mini" },
+  zhipu:     { base:"https://open.bigmodel.cn/api/paas/v4", model:"glm-4-flash" },
+  qwen:      { base:"https://dashscope.aliyuncs.com/compatible-mode/v1", model:"qwen-plus" },
+  anthropic: { base:"https://api.anthropic.com/v1", model:"claude-3-5-sonnet-20241022" },
+  ollama:    { base:"http://localhost:11434/v1", model:"llama3" },
+};
+
+const SAMPLE_TOPICS = ["大语言模型推理优化","具身智能机器人抓取","扩散模型图像生成","联邦学习隐私保护","多模态情感分析","蛋白质结构预测"];
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._timer); t._timer = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+
+/* 极简 Markdown 渲染（离线可用，不依赖外部库） */
+function renderMarkdown(src){
+  let html = esc(src)
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => `<pre><code>${code.trim()}</code></pre>`)
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/^#### (.*)$/gm, "<h4>$1</h4>")
+    .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
+    .replace(/^- (.*)$/gm, "<li>$1</li>")
+    .replace(/^(\d+)\. (.*)$/gm, "<li value='$1'>$2</li>")
+    .replace(/^&gt; (.*)$/gm, "<blockquote>$1</blockquote>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br>");
+  html = html.replace(/(<li>[\s\S]*?)(<\/p>|<br>)/g, "$1");
+  const lists = html.match(/(?:<li>[^]*?){2,}/g) || [];
+  lists.forEach(l => { if(!/^<ul>/.test(l)) html = html.replace(l, "<ul>"+l+"</ul>"); });
+  html = html.replace(/<li>/g, "<li>");
+  return "<p>" + html.replace(/<p><\/p>/g, "") + "</p>"
+    .replace(/<p><ul>/g, "<ul>").replace(/<\/ul><\/p>/g, "</ul>")
+    .replace(/<li value='(\d+)'>/g, "<li>");
+}
+
+/* ---------- 主题 ---------- */
+const UI = {
+  init(){
+    document.documentElement.setAttribute("data-theme", State.theme);
+    $("themeBtn").textContent = State.theme === "dark" ? "☀️" : "🌙";
+    UI.renderChips(); UI.renderStepper();
+    UI.applySettings();
+    if(location.protocol === "file:") toast("📄 离线模式：内置演示引擎可完整体验");
+  },
+  renderChips(){
+    $("chips").innerHTML = SAMPLE_TOPICS.map(t =>
+      `<button class="chip" onclick="document.getElementById('heroInput').value='${t}'">${t}</button>`).join("");
+  },
+  renderStepper(){
+    $("stepper").innerHTML = WORKFLOW_STEPS.map((s,i) => `
+      <div class="step" id="step-${i}">
+        <div class="step-dot">${i+1}</div>
+        <span class="step-label">${s.name}</span>
+      </div>`).join('<div class="step-line" id="line-0"></div>'.replace("line-0","line-") + '') +
+      Array.from({length:WORKFLOW_STEPS.length-1},(_,i)=>`<div class="step-line" id="line-${i}"></div>`).join("");
+  },
+  setStepState(i, state){ // state: pending|active|done
+    const el = $("step-"+i); if(!el) return;
+    el.classList.remove("active","done");
+    if(state==="active") el.classList.add("active");
+    if(state==="done"){ el.classList.add("done"); el.querySelector(".step-dot").textContent="✓"; }
+    if(i>0){ const line = $("line-"+(i-1)); if(line){ line.classList.add("fill"); if(state==="done") line.classList.add("done"); } }
+  },
+  resetSteps(){ for(let i=0;i<WORKFLOW_STEPS.length;i++){ const el=$("step-"+i); if(el){el.classList.remove("active","done"); el.querySelector(".step-dot").textContent=i+1;} const line=$("line-"+i); if(line){line.classList.remove("fill","done");} } },
+  switchView(view){
+    document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+    if(view==="chat"){ $("view-hero").classList.remove("active"); $("view-workspace").classList.add("active"); UI.switchTab("chat"); }
+    if(view==="literature"){ UI.enterWorkspace(); UI.switchTab("literature"); }
+    if(view==="outline"){ UI.enterWorkspace(); UI.switchTab("outline"); }
+    if(view==="experiment"){ UI.enterWorkspace(); UI.switchTab("experiment"); }
+    if(view==="report"){ UI.enterWorkspace(); UI.switchTab("report"); }
+  },
+  enterWorkspace(){ $("view-hero").classList.remove("active"); $("view-workspace").classList.add("active"); },
+  switchTab(tab){
+    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    $("panel-"+tab).classList.add("active");
+    if(tab==="literature" && State.literature.length===0) App.searchLiterature(State.topic || "人工智能");
+    if(tab==="mindmap" && !$("mindmapContainer").innerHTML.trim()) UI.renderMindmap();
+    if(tab==="report" && State.report) $("reportPreview").innerHTML = renderMarkdown(State.report);
+  },
+  toggleSidebar(){ $("sidebar").classList.toggle("collapsed"); },
+  toggleTheme(){
+    State.theme = State.theme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", State.theme);
+    $("themeBtn").textContent = State.theme === "dark" ? "☀️" : "🌙";
+    localStorage.setItem("sf_theme", State.theme);
+  },
+  autoResize(el){ el.style.height="auto"; el.style.height=Math.min(el.scrollHeight,140)+"px"; },
+  openSettings(){ $("settingsModal").classList.add("open"); UI.applySettings(); },
+  closeSettings(){ $("settingsModal").classList.remove("open"); },
+  applySettings(){
+    const s = State.settings;
+    $("providerSelect").value = s.provider || "mock";
+    $("apiKeyInput").value = s.apiKey || "";
+    $("baseUrlInput").value = s.baseUrl || "";
+    const real = s.provider && s.provider !== "mock";
+    $("apiKeyGroup").style.display = real ? "" : "none";
+    $("baseUrlGroup").style.display = real ? "" : "none";
+    $("modeBadge").innerHTML = real
+      ? `<span class="badge-mock" style="background:var(--success-soft);color:var(--success)">🔌 ${s.provider}</span>`
+      : `<span class="badge-mock">⚡ 演示模式</span>`;
+    $("footerMode").textContent = real ? `已连接 ${s.provider} 真实模型` : "演示模式（Mock）";
+  },
+  filterLiterature(q){
+    q = q.trim().toLowerCase();
+    document.querySelectorAll(".lit-card").forEach(card=>{
+      card.style.display = (!q || card.textContent.toLowerCase().includes(q)) ? "" : "none";
+    });
+  },
+  renderMindmap(){
+    const mm = Mindmap.build(State.topic || "科研方向");
+    $("mindmapContainer").innerHTML = mm;
+  },
+};
+
+/* ---------- 文献数据（Mock 引擎） ---------- */
+const LiteratureMock = {
+  authors: ["Wei Wang","Yi Zhang","Yang Liu","Ming Li","Hui Chen","Jing Wang","Lei Zhang","Fang Li","Jun Liu","Yan Chen","Michael Brown","Sarah Johnson","David Smith","Emily Davis","James Wilson","Lisa Anderson","Robert Taylor","Jennifer Martinez","Thomas Garcia","Amanda Thompson","Daniel Lee","Michelle White","Kevin Park","Grace Kim"],
+  venues: ["NeurIPS","ICML","ICLR","CVPR","ACL","AAAI","Nature Machine Intelligence","IEEE TPAMI","arXiv","Nature","Science","Cell"],
+  methods: ["Transformer 架构","对比学习","图神经网络","强化学习","扩散模型","知识蒸馏","联邦学习","提示工程","多任务学习","神经架构搜索","自监督学习","课程学习"],
+  datasets: ["ImageNet","GLUE","COCO","HumanEval","MMLU","CIFAR-100","SQuAD","SST-2","MuJoCo 仿真环境","RealRobot 数据集","PubMed","Kinetics-400"],
+  metrics: ["准确率","F1-Score","BLEU","困惑度","推理延迟","参数量","鲁棒性","收敛速度","AUC","HumanEval Pass@1","成功率","消融增益"],
+  results: ["+3.2%","+5.8%","+11.4%","−42% 延迟","2.1× 加速","+7.6%","SOTA 水平","+9.3%","−31% 显存","+4.5%","+12.2%","+6.7%"],
+  gen(topic, n){
+    const out = [];
+    const baseYear = new Date().getFullYear();
+    for(let i=0;i<n;i++){
+      const authors = [...new Set(Array.from({length:2+Math.floor(Math.random()*4)},()=>this.authors[Math.floor(Math.random()*this.authors.length)]))];
+      const year = baseYear - Math.floor(Math.random()*7);
+      const venue = this.venues[Math.floor(Math.random()*this.venues.length)];
+      const method = this.methods[Math.floor(Math.random()*this.methods.length)];
+      const titles = [
+        `${topic} 的${method}研究进展`, `面向${topic}的${method}新框架`,
+        `${method}在${topic}中的应用与优化`, `重新思考${topic}：基于${method}的视角`,
+        `高效${topic}：${method}的探索`, `${method}驱动的${topic}统一框架`,
+      ];
+      const title = titles[Math.floor(Math.random()*titles.length)];
+      out.push({
+        id:"lit-"+i,
+        title, authors, year, venue,
+        citations: year >= baseYear-1 ? Math.floor(Math.random()*80) : Math.floor(Math.random()*3000),
+        abstract: `近年来，${title}受到学术界与工业界的广泛关注。本文系统分析了${method}在${topic}场景下的核心挑战，提出了一种新的解决思路，并在多个基准数据集上进行了充分验证。实验结果表明，该方法在${this.metrics[Math.floor(Math.random()*this.metrics.length)]}等关键指标上取得了显著提升，为该方向后续研究提供了重要参考。`,
+        method, dataset: this.datasets[Math.floor(Math.random()*this.datasets.length)],
+        metric: this.metrics[Math.floor(Math.random()*this.metrics.length)],
+        result: this.results[Math.floor(Math.random()*this.results.length)],
+        doi: `10.${1000+Math.floor(Math.random()*9000)}/${100000+Math.floor(Math.random()*900000)}`,
+      });
+    }
+    out.sort((a,b)=>b.citations-a.citations);
+    return out;
+  },
+  bibtex(lits){
+    return lits.map(l=>`@article{${l.id},
+  title     = {${l.title}},
+  author    = {${l.authors.join(" and ")}},
+  journal   = {${l.venue}},
+  year      = {${l.year}},
+  doi       = {${l.doi}},
+}`).join("\n\n");
+  },
+  gbt7714(lits){
+    return lits.map((l,i)=>`[${i+1}] ${l.authors.join(", ")}. ${l.title}[J]. ${l.venue}, ${l.year}.`).join("\n");
+  },
+};
+
+/* ---------- 脑图构建 ---------- */
+const Mindmap = {
+  build(topic){
+    const branch = (label, children, icon="") => `
+      <div class="mm-node" onclick="this.classList.toggle('open')">
+        ${icon} ${label}<span class="mm-toggle">▸</span>
+        <div class="mm-children">${children}</div>
+      </div>`;
+    const leaf = t => `<div class="mm-node mm-leaf">${t}</div>`;
+    const children = branch("研究问题", leaf("核心挑战是什么？") + leaf("现有方法局限？") + leaf("创新点在哪？"));
+    const method = branch("技术路线", leaf("基线方法选择") + leaf("创新模块设计") + leaf("消融实验方案"));
+    const data = branch("数据与实验", leaf("数据集构建") + leaf("评估指标体系") + leaf("对比实验设置"));
+    const risk = branch("风险与对策", leaf("算力/时间预算") + leaf("结果不确定性") + leaf("备选方案"));
+    return `<div class="mm-root">🧬 ${esc(topic)}</div>` + children + method + data + risk;
+  },
+};
+
+/* ---------- 对话引擎 ---------- */
+const Chat = {
+  history: [],
+  add(role, content, opts={}){
+    const item = {role, content, ...opts};
+    this.history.push(item);
+    const list = $("chatList");
+    const div = document.createElement("div");
+    div.className = "msg " + (role==="user"?"user":"ai");
+    div.innerHTML = `<div class="msg-avatar">${role==="user"?"我":"🧬"}</div><div class="msg-bubble"></div>`;
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+    return div.querySelector(".msg-bubble");
+  },
+  async typeText(bubble, text, speed=14){
+    bubble.innerHTML = "";
+    const cursor = document.createElement("span"); cursor.className="cursor-blink";
+    bubble.appendChild(cursor);
+    for(let i=0;i<text.length;i++){
+      cursor.insertAdjacentText("beforebegin", text[i]);
+      if(i % 3 === 0) await sleep(speed);
+    }
+    cursor.remove();
+    bubble.innerHTML = renderMarkdown(text);
+    $("chatList").scrollTop = $("chatList").scrollHeight;
+  },
+  showTyping(){
+    const bubble = this.add("ai","");
+    bubble.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>`;
+    $("chatList").scrollTop = $("chatList").scrollHeight;
+    return bubble;
+  },
+  async reply(input){
+    const text = input.trim();
+    const s = text.toLowerCase();
+    const topic = State.topic;
+    let answer = "";
+
+    if(/调研|检索|文献|related|survey/i.test(s)) answer = this.answerLiterature(topic);
+    else if(/大纲|框架|outline/i.test(s)) answer = this.answerOutline(topic);
+    else if(/实验|方案|设计实验|对照组/i.test(s)) answer = this.answerExperiment(topic);
+    else if(/报告|撰写|写作|论文|write/i.test(s)) answer = this.answerReport(topic);
+    else if(/脑图|思路|创新点|idea/i.test(s)) answer = this.answerIdeas(topic);
+    else if(/引用|bibtex|参考文献|citation/i.test(s)) answer = this.answerCitation(topic);
+    else if(/你好|嗨|hello/i.test(s)) answer = `你好！我是 **SciFlow 科研助手** 🧬。\n\n我可以在「${topic || "你的研究方向"}」上帮你：\n\n1. 🔍 **文献调研**——检索、矩阵对比、引用导出\n2. 📋 **生成论文大纲**——标准学术结构\n3. 🧪 **设计实验方案**——变量控制与评估指标\n4. ✍️ **撰写调研报告**——Markdown 一键导出\n\n试试对我说「帮我调研文献」或「生成论文大纲」～`;
+    else answer = `收到！关于「${topic || "这个主题"}」，我建议从以下角度推进研究：\n\n1. **明确核心问题**：定义研究边界与关键挑战\n2. **调研现有工作**：建立文献矩阵，定位空白点\n3. **设计验证方案**：确定基线、指标与消融实验\n\n你可以让我「📚 检索相关文献」「📋 生成论文大纲」或「🧪 设计实验方案」，我会一步步带你完成。`;
+
+    return answer;
+  },
+  answerLiterature(topic){
+    State.literature = LiteratureMock.gen(topic, 9);
+    $("litCount").textContent = State.literature.length;
+    App.renderLiterature();
+    const top = State.literature.slice(0,3).map(l=>`- **${l.title}**（${l.year}, ${l.venue}）`).join("\n");
+    return `已完成「${topic}」的文献检索 🔍，共找到 **${State.literature.length}** 篇相关文献（含引用数排序）。\n\n代表文献：\n${top}\n\n文献已同步到右侧「📚 文献」面板，支持**矩阵对比**与 **BibTeX / GB-T 7714** 引用导出。`;
+  },
+  answerOutline(topic){
+    if(!State.outline) App.buildOutline(topic);
+    return `已生成「${topic}」的标准学术论文大纲 📋（同步到「大纲」面板，可直接编辑）：\n\n${State.outline.slice(0,420)}…\n\n> 大纲支持在线编辑，修改后导出会使用最新版本。`;
+  },
+  answerExperiment(topic){
+    App.buildExperiments(topic);
+    return `已为「${topic}」设计完整实验方案 🧪（详见「实验」面板）：\n\n- **研究问题**：${State.experiments.title}\n- **假设验证**：${State.experiments.hypothesis.slice(0,80)}…\n- **评估指标**：${State.experiments.metrics.join("、")}\n\n方案包含变量控制、对照组设置与风险预案，可直接用于开题或论文实验章节。`;
+  },
+  answerReport(topic){
+    if(!State.report) App.buildReport(topic);
+    return `已撰写「${topic}」完整调研报告 ✍️（详见「报告」面板）：\n\n包含：研究背景 → 文献综述 → 方法分析 → 未来展望 → 参考文献。\n\n支持导出 **Markdown / Word / BibTeX** 或一键打包 **ZIP**（📦 导出成果按钮）。`;
+  },
+  answerIdeas(topic){
+    return `基于「${topic}」的文献分析，探索到以下**创新方向** 💡：\n\n1. **方法创新**：将对比学习与领域知识图谱结合，缓解数据稀疏问题\n2. **效率创新**：面向推理场景的轻量化架构，兼顾精度与延迟\n3. **应用创新**：从实验室基准迁移到真实场景，建立领域专用评估集\n\n建议从文献矩阵中**引用数高但方法未收敛**的方向切入。`;
+  },
+  answerCitation(topic){
+    if(!State.bibtex) State.bibtex = LiteratureMock.bibtex(State.literature.length ? State.literature : LiteratureMock.gen(topic,8));
+    return `已生成 **BibTeX** 参考文献（${State.literature.length||8} 条）📚：\n\n\`\`\`bibtex\n${State.bibtex.slice(0,380)}…\n\`\`\`\n\n支持一键下载（报告面板「⬇ BibTeX」按钮），也提供 **GB-T 7714** 格式。`;
+  },
+};
+
+/* ---------- 应用逻辑 ---------- */
+const App = {
+  async startResearch(){
+    const topic = $("heroInput").value.trim();
+    if(!topic) return toast("请输入研究方向～");
+    State.topic = topic;
+    UI.enterWorkspace();
+    $("projectTitle").textContent = `${topic} · 科研工作流`;
+    $("topbarSub").textContent = "正在进行 8 步自动化科研流程…";
+    $("heroInput").value = "";
+    Chat.history = []; $("chatList").innerHTML = "";
+    const bubble = Chat.add("ai","");
+    bubble.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>`;
+    await sleep(600);
+    await Chat.typeText(bubble, `已收到研究方向：「**${topic}**」🎯\n\n我将为你执行 **8 步自动化科研流程**：需求理解 → 文献检索 → 文献分析 → 思路生成 → 大纲构建 → 实验设计 → 文档撰写 → 成果导出。\n\n点击右上角「▶ 自动演示」观看全流程，或直接告诉我你想先做什么（如「调研文献」「生成大纲」）。`, 10);
+  },
+  async quickStart(kind){
+    const topic = State.topic || "大语言模型推理优化";
+    State.topic = topic;
+    UI.enterWorkspace();
+    $("projectTitle").textContent = `${topic} · 科研工作流`;
+    Chat.history = []; $("chatList").innerHTML = "";
+    Chat.add("user", kind==="literature"?"帮我调研相关文献":kind==="outline"?"生成论文大纲":kind==="experiment"?"设计实验方案":"帮我撰写调研报告");
+    const bubble = Chat.showTyping();
+    await sleep(700);
+    let text;
+    if(kind==="literature") text = Chat.answerLiterature(topic);
+    else if(kind==="outline"){ App.buildOutline(topic); text = Chat.answerOutline(topic); }
+    else if(kind==="experiment"){ App.buildExperiments(topic); text = Chat.answerExperiment(topic); }
+    else { App.buildReport(topic); text = Chat.answerReport(topic); }
+    await Chat.typeText(bubble, text, 10);
+    UI.switchTab(kind==="report"?"report":kind);
+  },
+  async sendChat(){
+    if(State.chatBusy) return;
+    const input = $("chatInput");
+    const text = input.value.trim();
+    if(!text) return;
+    input.value = ""; input.style.height="auto";
+    Chat.add("user", text);
+    const bubble = Chat.showTyping();
+    State.chatBusy = true;
+    $("chatSendBtn").disabled = true;
+    try{
+      const answer = await Chat.reply(text);
+      bubble.innerHTML = "";
+      await Chat.typeText(bubble, answer, 10);
+    }finally{
+      State.chatBusy = false;
+      $("chatSendBtn").disabled = false;
+    }
+  },
+  /* ---- 工作流自动演示 ---- */
+  async autoDemo(){
+    if(State.workflowRunning) return;
+    if(!State.topic) State.topic = "大语言模型推理优化";
+    UI.enterWorkspace();
+    State.workflowRunning = true;
+    const btn = $("demoBtn"); btn.disabled = true; btn.textContent = "⏳ 运行中…";
+    UI.resetSteps();
+    $("topbarSub").textContent = "8 步自动化科研流程执行中…";
+
+    const stepMsgs = [
+      `正在分析「${State.topic}」的研究背景、核心问题与预期目标…`,
+      "正在检索相关学术文献，构建领域文献库…",
+      "正在进行文献矩阵对比，总结研究现状与趋势…",
+      "基于文献分析，探索创新研究点与技术路线…",
+      "正在生成标准学术论文大纲…",
+      "正在设计实验方案：变量控制、对照组与评估指标…",
+      "正在撰写完整调研报告…",
+      "正在打包成果：Markdown / BibTeX / 大纲…",
+    ];
+
+    for(let i=0;i<WORKFLOW_STEPS.length;i++){
+      UI.setStepState(i,"active");
+      const bubble = Chat.add("ai","");
+      bubble.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>`;
+      $("chatList").scrollTop = $("chatList").scrollHeight;
+      await sleep(900);
+      bubble.innerHTML = "";
+      await Chat.typeText(bubble, `**${WORKFLOW_STEPS[i].icon} ${WORKFLOW_STEPS[i].name}** — ${stepMsgs[i]}`, 6);
+      await sleep(350);
+      UI.setStepState(i,"done");
+
+      // 各步骤产出
+      if(i===1){ State.literature = LiteratureMock.gen(State.topic, 9); $("litCount").textContent=9; App.renderLiterature(); }
+      if(i===2){ App.renderMatrix(); }
+      if(i===4){ App.buildOutline(State.topic); }
+      if(i===5){ App.buildExperiments(State.topic); }
+      if(i===6){ App.buildReport(State.topic); }
+      if(i===7){ State.bibtex = LiteratureMock.bibtex(State.literature); }
+    }
+
+    $("topbarSub").textContent = "工作流执行完成 ✓ 全部 8 步已完成";
+    toast("🎉 工作流执行完成！成果已就绪，可随时导出");
+    btn.disabled = false; btn.textContent = "↻ 重新演示";
+    State.workflowRunning = false;
+  },
+  /* ---- 文献 ---- */
+  async searchLiterature(topic){
+    $("litContainer").innerHTML = `<div class="lit-loading"><div class="spinner"></div>正在检索「${esc(topic)}」相关文献…</div>`;
+    await sleep(900);
+    State.literature = LiteratureMock.gen(topic, 9);
+    $("litCount").textContent = State.literature.length;
+    $("litSub").textContent = `已找到 ${State.literature.length} 篇相关文献 · ${topic}`;
+    App.renderLiterature();
+  },
+  reSearch(){ App.searchLiterature(State.topic || "人工智能"); },
+  renderLiterature(){
+    const lits = State.literature;
+    $("litContainer").innerHTML = `
+      <div class="lit-list">
+        ${lits.map((l,i)=>`
+          <div class="lit-card" id="lit-${i}">
+            <div class="lit-top">
+              <div class="lit-title">${esc(l.title)}</div>
+              <span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;flex-shrink:0">${l.citations} 引用</span>
+            </div>
+            <div class="lit-meta">
+              <span class="year">${l.year}</span><span>·</span><span>${esc(l.venue)}</span><span>·</span><span>${esc(l.authors.slice(0,3).join(", "))}${l.authors.length>3?" 等":""}</span>
+            </div>
+            <div class="lit-abstract">${esc(l.abstract)}</div>
+            <div class="lit-actions">
+              <button class="mini-btn" onclick="document.getElementById('lit-${i}').classList.toggle('expanded')">摘要</button>
+              <button class="mini-btn" onclick="App.copyBibtex(${i})">BibTeX</button>
+              <button class="mini-btn" onclick="App.copyGbt(${i})">GB-T 7714</button>
+              <button class="mini-btn primary" onclick="App.matrixView()">矩阵对比</button>
+            </div>
+          </div>`).join("")}
+      </div>`;
+  },
+  renderMatrix(){
+    const lits = State.literature.slice(0,6);
+    $("litContainer").innerHTML = `
+      <div style="margin-bottom:12px;display:flex;gap:8px;max-width:1000px;margin-left:auto;margin-right:auto">
+        <button class="mini-btn" onclick="App.renderLiterature()">← 返回列表</button>
+        <span style="font-size:12.5px;color:var(--text-tertiary);align-self:center">文献矩阵对比（前 ${lits.length} 篇）</span>
+      </div>
+      <div class="matrix-wrap">
+        <table class="matrix-table">
+          <thead><tr><th>文献</th><th>年份</th><th>方法</th><th>数据集</th><th>评估指标</th><th>主要结果</th></tr></thead>
+          <tbody>${lits.map(l=>`<tr>
+            <td style="min-width:180px"><b>${esc(l.title)}</b></td>
+            <td>${l.year}</td>
+            <td class="cell-method">${esc(l.method)}</td>
+            <td>${esc(l.dataset)}</td>
+            <td>${esc(l.metric)}</td>
+            <td><b style="color:var(--success)">${l.result}</b></td>
+          </tr>`).join("")}</tbody>
+        </table>
+      </div>`;
+  },
+  matrixView(){ App.renderMatrix(); },
+  copyBibtex(i){ App.copyText(LiteratureMock.bibtex([State.literature[i]]), "BibTeX 已复制 ✓"); },
+  copyGbt(i){ App.copyText(LiteratureMock.gbt7714([State.literature[i]]), "GB-T 7714 已复制 ✓"); },
+  copyText(text, msg){
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+      .then(()=>toast(msg))
+      .catch(()=>{ const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast(msg); });
+  },
+  /* ---- 大纲 ---- */
+  buildOutline(topic){
+    State.outline = `# ${topic}研究：方法、挑战与展望
+
+## 摘要
+本文系统综述了${topic}的研究现状，总结了核心方法、关键挑战与未来方向，并提出了若干可行的创新研究点。
+
+## 1. 引言
+### 1.1 研究背景与意义
+${topic}是当前学术界与工业界关注的热点问题，具有重要的理论价值与应用前景。
+
+### 1.2 研究问题与挑战
+现有方法在效率、泛化性与可解释性等方面仍存在明显不足。
+
+### 1.3 研究内容与目标
+1. 系统梳理${topic}的方法演进
+2. 构建对比实验框架，量化评估各方法
+3. 提出面向实际场景的改进方案
+
+## 2. 文献综述
+### 2.1 相关研究领域概述
+### 2.2 现有方法分析与比较
+### 2.3 研究空白与机会
+
+## 3. 方法
+### 3.1 总体框架设计
+### 3.2 关键模块实现
+### 3.3 复杂度分析
+
+## 4. 实验
+### 4.1 实验设置与数据集
+### 4.2 对比实验
+### 4.3 消融实验
+### 4.4 案例分析
+
+## 5. 结论与展望
+### 5.1 研究结论
+### 5.2 未来工作`;
+    $("outlineEditor").value = State.outline;
+  },
+  regenerateOutline(){ if(State.topic){ App.buildOutline(State.topic); toast("大纲已重新生成 ✓"); } },
+  /* ---- 实验方案 ---- */
+  buildExperiments(topic){
+    State.experiments = {
+      title: `${topic}的对比验证实验`,
+      hypothesis: `基于${topic}改进方法能够在核心指标上显著优于现有基线，同时保持可接受的资源开销。`,
+      variables: ["自变量：方法架构与训练策略","因变量：性能指标与推理效率","控制变量：数据集、硬件环境、随机种子"],
+      groups: ["基线组：现有 SOTA 方法","实验组：本文改进方法","消融组：逐模块移除验证"],
+      metrics: ["准确率 / F1","推理延迟 (ms)","参数量 (M)","消融增益 (%)"],
+      risks: ["算力预算不足 → 缩减训练规模并保证对比公平","结果不显著 → 增加重复实验与统计检验","数据偏差 → 多数据集交叉验证"],
+      timeline: "第 1-2 周：基线复现 · 第 3-5 周：方法实现 · 第 6-8 周：实验与消融 · 第 9 周：论文撰写",
+    };
+    $("expContainer").innerHTML = [
+      {icon:"🎯", title:State.experiments.title, tag:"研究问题", body:`<b>假设：</b>${State.experiments.hypothesis}`, list:null},
+      {icon:"🎛️", title:"变量设计", tag:"控制", body:null, list:State.experiments.variables},
+      {icon:"⚖️", title:"对比组设置", tag:"对照组", body:null, list:State.experiments.groups},
+      {icon:"📊", title:"评估指标体系", tag:"指标", body:null, list:State.experiments.metrics},
+      {icon:"⚠️", title:"潜在风险与对策", tag:"风险", body:null, list:State.experiments.risks},
+      {icon:"🗓️", title:"实施时间线", tag:"规划", body:State.experiments.timeline, list:null},
+    ].map(c=>`
+      <div class="exp-card">
+        <div class="exp-card-title">${c.icon} ${c.title}<span class="exp-tag">${c.tag}</span></div>
+        <div class="exp-card-body">${c.body ? `<p>${c.body}</p>` : ""}${c.list ? `<ul>${c.list.map(x=>`<li>${x}</li>`).join("")}</ul>` : ""}</div>
+      </div>`).join("");
+  },
+  /* ---- 报告 ---- */
+  buildReport(topic){
+    const lits = State.literature.length ? State.literature.slice(0,6) : LiteratureMock.gen(topic, 6);
+    State.report = `# ${topic} 调研报告
+
+**主题**：${topic} ｜ **生成工具**：SciFlow AI 科研工作台 ｜ **生成日期**：${new Date().toLocaleDateString("zh-CN")}
+
+---
+
+## 一、研究背景与意义
+
+${topic}近年来发展迅速，已成为该领域的研究热点。本文对相关工作进行系统梳理，从方法演进、技术挑战与应用前景三个维度展开分析，为后续研究提供参考。
+
+## 二、文献综述
+
+对近 ${lits.length} 篇代表性文献进行对比分析：
+
+| 文献 | 年份 | 方法 | 主要结果 |
+|------|------|------|---------|
+${lits.map(l=>`| ${l.title.slice(0,22)}… | ${l.year} | ${l.method} | ${l.result} |`).join("\n")}
+
+### 研究趋势
+- 方法层面：从单一模型向${lits[0]?.method||"多模块协同"}等混合范式演进
+- 效率层面：轻量化与推理加速成为关注重点
+- 应用层面：从实验室基准走向真实场景落地
+
+## 三、关键挑战
+
+1. **效率瓶颈**：高质量结果与资源开销的平衡
+2. **泛化能力**：跨领域、跨分布的性能保持
+3. **评估体系**：缺乏统一、可复现的评测标准
+
+## 四、未来展望
+
+1. 面向真实场景的鲁棒性优化
+2. 多模态与知识融合的研究范式
+3. 可解释性与可信 AI 方向探索
+
+## 参考文献
+
+${lits.map((l,i)=>`[${i+1}] ${l.authors.slice(0,3).join(", ")}. ${l.title}[J]. ${l.venue}, ${l.year}.`).join("\n")}
+
+---
+*本报告由 SciFlow AI 科研工作台自动生成*
+`;
+    State.bibtex = LiteratureMock.bibtex(lits);
+    $("reportPreview").innerHTML = renderMarkdown(State.report);
+    $("reportSub").textContent = `完整调研报告 · ${lits.length} 篇参考文献 · 支持导出`;
+  },
+  /* ---- 导出 ---- */
+  downloadFile(name, content){
+    if(!content){ return toast("内容尚未生成，请先运行工作流"); }
+    const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+    toast(`已下载 ${name} ✓`);
+  },
+  async exportAll(){
+    if(!State.report && !State.outline && !State.bibtex) return toast("暂无成果可导出，先运行「自动演示」吧");
+    if(!State.bibtex) State.bibtex = LiteratureMock.bibtex(State.literature);
+    const topic = State.topic || "科研项目";
+    const files = {
+      "README.md": `# ${topic} - SciFlow 科研项目\n\n- report.md: 完整调研报告\n- outline.md: 论文大纲\n- references.bib: BibTeX 参考文献\n- references_gbt7714.txt: GB-T 7714 引用\n- project.json: 项目元数据\n\n*由 SciFlow AI 科研工作台生成*\n`,
+      "report.md": State.report || "# 报告\n\n尚未生成",
+      "outline.md": State.outline || "# 大纲\n\n尚未生成",
+      "references.bib": State.bibtex,
+      "references_gbt7714.txt": LiteratureMock.gbt7714(State.literature),
+      "project.json": JSON.stringify({topic, generatedAt:new Date().toISOString(), literatureCount:State.literature.length}, null, 2),
+    };
+    toast("📦 正在打包 ZIP…");
+    await sleep(100);
+    if(window.JSZip){
+      const zip = new JSZip();
+      Object.entries(files).forEach(([n,c])=>zip.file(n,c));
+      const blob = await zip.generateAsync({type:"blob"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = `${topic}_SciFlow成果.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast(`✅ 已导出 ${topic}_SciFlow成果.zip（${Object.keys(files).length} 个文件）`);
+    }else{
+      // 离线降级：逐个下载
+      let n = 0;
+      for(const [name, content] of Object.entries(files)){
+        App.downloadFile(`${topic}_${name}`, content); n++;
+        await sleep(350);
+      }
+      toast(`已逐个下载 ${n} 个文件（离线模式）。提示：联网后将自动打包为单个 ZIP`);
+    }
+  },
+  /* ---- 设置与真实 LLM ---- */
+  openSettings(){ UI.openSettings(); },
+  async testConnection(){
+    const s = State.settings;
+    const p = s.provider || "mock";
+    const st = $("connStatus");
+    if(p === "mock"){ st.className="conn-status ok"; st.textContent="✓ 演示模式无需连接，内置引擎随时可用"; return; }
+    if(!s.apiKey){ st.className="conn-status fail"; st.textContent="✗ 请先填写 API Key"; return; }
+    st.className="conn-status"; st.textContent="⏳ 正在测试连接…";
+    try{
+      const ok = await App.llmChat([{role:"user",content:"ping"}], 5);
+      st.className="conn-status ok"; st.textContent = ok.includes("pong") ? "✓ 连接成功" : "✓ 连接成功（返回正常）";
+    }catch(e){
+      st.className="conn-status fail"; st.textContent = "✗ 连接失败：" + (e.message||e);
+    }
+  },
+  saveSettings(){
+    State.settings = {
+      provider: $("providerSelect").value,
+      apiKey: $("apiKeyInput").value.trim(),
+      baseUrl: $("baseUrlInput").value.trim(),
+    };
+    localStorage.setItem("sf_settings", JSON.stringify(State.settings));
+    UI.applySettings();
+    UI.closeSettings();
+    toast(State.settings.provider && State.settings.provider!=="mock" ? `🔌 已启用 ${State.settings.provider} 真实模型` : "已切换为演示模式（Mock）");
+  },
+  async llmChat(messages, maxTokens=1024){
+    const s = State.settings;
+    const prov = PROVIDERS[s.provider] || PROVIDERS.deepseek;
+    const base = s.baseUrl || prov.base;
+    const res = await fetch(base.replace(/\/$/,"") + "/chat/completions", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.apiKey},
+      body: JSON.stringify({model:prov.model, messages, max_tokens:maxTokens, temperature:0.7}),
+    });
+    if(!res.ok){
+      const err = await res.text().catch(()=>"");
+      throw new Error(`HTTP ${res.status} ${err.slice(0,120)}`);
+    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content ?? "";
+  },
+};
+
+/* ---------- 引导：真实 LLM 开关（对话走真实 API） ---------- */
+const origReply = Chat.reply.bind(Chat);
+Chat.reply = async function(input){
+  const s = State.settings;
+  if(s.provider && s.provider !== "mock" && s.apiKey){
+    try{
+      const msgs = [
+        {role:"system", content:`你是 SciFlow 科研助手。用户研究主题：${State.topic||"未指定"}。请用中文简洁专业地回答，支持 Markdown。`},
+        ...this.history.filter(h=>h.role!=="system").slice(-8).map(h=>({role:h.role==="user"?"user":"assistant", content:h.content})),
+      ];
+      const content = await App.llmChat(msgs);
+      if(content) return content;
+    }catch(e){
+      toast("⚠️ 真实 API 调用失败，已切换到演示引擎：" + (e.message||e).slice(0,60));
+    }
+  }
+  return origReply(input);
+};
+
+/* ---------- 启动 ---------- */
+document.addEventListener("DOMContentLoaded", UI.init);
+window.UI = UI; window.App = App; window.State = State; window.Chat = Chat;
+</script>
+
+<!-- 可选 CDN 增强：加载 JSZip 实现单文件 ZIP 打包（离线时自动降级为逐个下载） -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</body>
+</html>
