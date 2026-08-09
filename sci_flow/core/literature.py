@@ -302,6 +302,7 @@ class LiteratureManager:
         limit: int = 10,
         discipline: Discipline = Discipline.COMPUTER_SCIENCE,
         use_mock: Optional[bool] = None,
+        source: str = "auto",
     ) -> List[Literature]:
         """
         搜索文献
@@ -311,6 +312,7 @@ class LiteratureManager:
             limit: 返回文献数量
             discipline: 学科领域
             use_mock: 是否强制使用Mock模式
+            source: 数据源，auto(先 Semantic Scholar 再 arXiv) / arxiv / semantic_scholar
 
         Returns:
             文献列表
@@ -321,10 +323,19 @@ class LiteratureManager:
         if use_mock:
             return self.generate_mock_literature(topic, limit, discipline)
 
+        if source == "arxiv":
+            try:
+                return await self._search_arxiv(topic, limit)
+            except Exception:
+                return self.generate_mock_literature(topic, limit, discipline)
+
         try:
             return await self._search_semantic_scholar(topic, limit)
         except Exception:
-            return self.generate_mock_literature(topic, limit, discipline)
+            try:
+                return await self._search_arxiv(topic, limit)
+            except Exception:
+                return self.generate_mock_literature(topic, limit, discipline)
 
     async def _search_semantic_scholar(self, topic: str, limit: int) -> List[Literature]:
         """使用Semantic Scholar API搜索文献"""
@@ -359,6 +370,54 @@ class LiteratureManager:
                 citations=paper.get("citationCount", 0),
                 url=paper.get("url"),
                 doi=doi,
+                tags=[topic],
+            )
+            lit.bibtex = self.formatter.generate_bibtex(lit)
+            literature_list.append(lit)
+
+        return literature_list
+
+    async def _search_arxiv(self, topic: str, limit: int) -> List[Literature]:
+        """使用 arXiv API 搜索文献（免费、无需Key，覆盖计算机/物理/数学等领域）"""
+        import urllib.parse
+        import urllib.request
+        import xml.etree.ElementTree as ET
+
+        query = urllib.parse.quote(f"all:{topic}")
+        url = (
+            f"https://export.arxiv.org/api/query?search_query={query}"
+            f"&start=0&max_results={limit}&sortBy=relevance"
+        )
+
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", "SciFlow/1.0")
+
+        with urllib.request.urlopen(req, timeout=15) as response:
+            xml_data = response.read()
+
+        ns = {"a": "http://www.w3.org/2005/Atom"}
+        root = ET.fromstring(xml_data)
+
+        literature_list = []
+        for entry in root.findall("a:entry", ns):
+            title = " ".join(entry.findtext("a:title", "", ns).split())
+            summary = " ".join(entry.findtext("a:summary", "", ns).split())
+            authors = [
+                a.findtext("a:name", "", ns)
+                for a in entry.findall("a:author", ns)
+            ]
+            published = entry.findtext("a:published", "", ns)
+            year = int(published[:4]) if published and published[:4].isdigit() else None
+            abs_url = entry.findtext("a:id", "", ns)
+
+            lit = Literature(
+                title=title,
+                authors=[a for a in authors if a],
+                year=year,
+                venue="arXiv",
+                abstract=summary,
+                citations=0,
+                url=abs_url,
                 tags=[topic],
             )
             lit.bibtex = self.formatter.generate_bibtex(lit)

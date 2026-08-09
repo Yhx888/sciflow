@@ -535,11 +535,13 @@ def literature():
 @click.argument("topic")
 @click.option("--limit", "-n", default=10, help="返回文献数量")
 @click.option("--mock", is_flag=True, help="强制使用Mock模式")
+@click.option("--source", type=click.Choice(["auto", "arxiv", "semantic_scholar"]), default="auto",
+              help="数据源：arxiv(免费无需Key) / semantic_scholar / auto(先SS后arXiv，失败自动降级)")
 @click.option("--discipline", "-d", default="computer_science", 
               type=click.Choice(["computer_science", "biology", "physics", "chemistry", 
                                   "materials_science", "mathematics", "medicine", "other"]),
               help="学科领域")
-def literature_search(topic, limit, mock, discipline):
+def literature_search(topic, limit, mock, discipline, source):
     """搜索相关文献
     
     TOPIC 是要搜索的研究主题
@@ -560,11 +562,13 @@ def literature_search(topic, limit, mock, discipline):
     
     if use_mock:
         print_info("使用Mock模式 (演示数据)")
+    elif source != "auto":
+        print_info(f"使用{source}数据源")
     click.echo()
     
     with console.status(f"{Fore.BLUE}正在搜索文献...{Style.RESET_ALL}") if RICH_AVAILABLE else click.progressbar(length=1, label="搜索中"):
         try:
-            lit_list = run_async(_LIT_MANAGER.search(topic, limit=limit, discipline=disc, use_mock=use_mock))
+            lit_list = run_async(_LIT_MANAGER.search(topic, limit=limit, discipline=disc, use_mock=use_mock, source=source))
         except Exception as e:
             print_error(f"搜索失败: {e}")
             print_info("尝试使用Mock模式...")

@@ -108,8 +108,65 @@ def test_search_mock_fallback_on_network_error(manager, monkeypatch):
         raise RuntimeError("network down")
 
     monkeypatch.setattr(manager, "_search_semantic_scholar", fake_fail)
+    monkeypatch.setattr(manager, "_search_arxiv", fake_fail)
     lits = asyncio.run(manager.search("网络故障主题", limit=5, use_mock=False))
     assert len(lits) == 5
+
+
+def test_search_arxiv_source(manager, monkeypatch):
+    """指定 arxiv 数据源时只走 arXiv；失败时降级 Mock"""
+
+    async def fake_success(topic, limit):
+        return manager.generate_mock_literature(topic, limit)
+
+    async def fake_fail(*args, **kwargs):
+        raise RuntimeError("arxiv down")
+
+    monkeypatch.setattr(manager, "_search_arxiv", fake_success)
+    lits = asyncio.run(manager.search("arxiv主题", limit=3, use_mock=False, source="arxiv"))
+    assert len(lits) == 3
+
+    monkeypatch.setattr(manager, "_search_arxiv", fake_fail)
+    lits = asyncio.run(manager.search("arxiv失败", limit=4, use_mock=False, source="arxiv"))
+    assert len(lits) == 4  # 降级 Mock
+
+
+def test_search_arxiv_parsing(manager, monkeypatch):
+    """arXiv Atom XML 解析应正确提取标题/作者/年份/摘要"""
+    xml_sample = b"""<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <id>http://arxiv.org/abs/2301.00001v1</id>
+        <title>  Attention Is All You Need  </title>
+        <published>2023-01-01T00:00:00Z</published>
+        <author><name>Vaswani</name></author>
+        <author><name>Shazeer</name></author>
+        <summary>  A transformer architecture paper.  </summary>
+      </entry>
+    </feed>"""
+
+    class FakeResponse:
+        def __init__(self, data):
+            self._data = data
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return self._data
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout=15: FakeResponse(xml_sample))
+    lits = asyncio.run(manager._search_arxiv("transformer", 5))
+    assert len(lits) == 1
+    assert lits[0].title == "Attention Is All You Need"
+    assert lits[0].authors == ["Vaswani", "Shazeer"]
+    assert lits[0].year == 2023
+    assert lits[0].venue == "arXiv"
+    assert lits[0].url == "http://arxiv.org/abs/2301.00001v1"
+    assert lits[0].bibtex is not None
 
 
 def test_save_and_get_literature(manager):
