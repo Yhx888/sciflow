@@ -2,7 +2,7 @@
 SciFlow - AI驱动的科研工作流助手
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "SciFlow Team"
 __description__ = "AI驱动的科研工作流助手，助力学术研究全流程"
 

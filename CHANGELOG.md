@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-09
+
+### Added - 参赛与工程化升级
+- 🎁 **单文件参赛 Demo**（`sciflow_demo.html`）：零后端、双击即开、可静态部署到魔搭/GitHub Pages
+  - 内置演示引擎（Mock），开箱即用；可选真实 LLM（OpenAI 兼容接口浏览器直连）
+  - 8 步工作流动画、文献矩阵、思路脑图、可编辑大纲、实验方案、报告、ZIP 打包
+- 🔬 **arXiv 真实文献检索**：`sciflow literature search --source arxiv`，免费无需 Key，失败自动降级 Mock
+- 🧪 **测试体系**：48 个 pytest 用例覆盖核心模块（配置/数据库/文献/工作流/成果生成）
+
+### Changed
+- 🌐 **Web UI 接入真实后端**（渐进增强）：检测到 FastAPI 后端时对话走 SSE 流式、配置持久化、真实连接测试
+- 📄 README 新增部署指南（魔搭创空间 / GitHub Pages / Vercel）与测试说明
+
+### Fixed
+- 🐛 LLM 客户端 `achat(stream=True)` 返回双重协程导致 `/api/chat/stream` 崩溃
+- 🐛 物理/化学/材料学科 Mock 文献标题模板缺占位符导致 KeyError
+- 🐛 工作流步骤状态未持久化，`get_workflow_status` 永远显示 pending
+- 🐛 工作流产物（outline/report/experiments）未写回项目，导出 API 取不到内容
+- 🐛 WORKFLOW_STARTED 事件发出前未注册运行状态，收到事件后无法立即取消
+
 ## [1.0.0] - 2026-06-25
 
 ### Added - 重大新特性

@@ -30,6 +30,16 @@
 
 ## 🚀 快速开始
 
+### 方式零：在线体验（零安装）
+
+打开 **单文件 Web Demo**（`sciflow_demo.html`，纯前端、零依赖）：
+
+- 🖱️ 双击打开即可体验完整 8 步科研工作流，无需安装任何环境
+- 🎭 内置演示引擎（Mock）开箱即用；在 ⚙️ 设置中填入 API Key 即可切换为真实 LLM
+- 🌐 可部署到任意静态托管（魔搭创空间 / GitHub Pages / Vercel），作为公网访问链接提交参赛
+
+> 部署教程见下方 [📡 部署指南](#-部署指南)
+
 ### 方式一：桌面应用（推荐）
 
 下载最新的 `SciFlow-Setup.exe` 安装包，双击安装即可使用。
@@ -107,6 +117,25 @@ export OPENAI_API_KEY="sk-xxx"
 export DEEPSEEK_API_KEY="sk-xxx"
 ```
 
+## 📡 部署指南
+
+### 方案一：魔搭创空间（推荐，公网可访问）
+
+1. 注册登录 [魔搭创空间](https://modelscope.cn/studios)（阿里云，国内访问快）
+2. 点击「创建空间」，空间类型选择 **静态页面**
+3. 将仓库中的 `sciflow_demo.html` 重命名为 `index.html` 上传（或用 git 推送到空间仓库）
+4. 等待部署完成，即可获得公网链接：`https://modelscope.cn/studios/<你的用户名>/<空间名>`
+
+### 方案二：GitHub Pages（免费）
+
+1. 在 GitHub 仓库 `Settings → Pages` 中启用 Pages，分支选 `main`，目录选 `/`
+2. 访问 `https://<你的用户名>.github.io/sciflow/` 即可
+3. 如目录下还有其他文件，可直接访问 `/sciflow_demo.html`
+
+### 方案三：Vercel / Netlify / 任意静态托管
+
+将 `sciflow_demo.html` 拖入即可，其他无需配置。
+
 ## 🏗️ 技术栈
 
 - **后端**：Python 3.10+、FastAPI、Pydantic v2、httpx
@@ -119,13 +148,12 @@ export DEEPSEEK_API_KEY="sk-xxx"
 ## 📁 项目结构
 
 ```
-sciflow/
-├── sci_flow/
+├── sci_flow/                    # 核心代码目录
 │   ├── core/           # 核心业务逻辑
 │   │   ├── config.py   # 配置管理
 │   │   ├── database.py # 数据持久化
 │   │   ├── models.py   # 数据模型
-│   │   ├── literature.py # 文献管理
+│   │   ├── literature.py # 文献管理（arXiv/Semantic Scholar 真实检索）
 │   │   ├── workflow.py # 工作流引擎
 │   │   └── generator.py # 成果生成
 │   ├── llm/            # LLM客户端
@@ -135,12 +163,24 @@ sciflow/
 │   ├── desktop/        # 桌面应用
 │   │   └── launcher.py # pywebview启动器
 │   ├── web/            # Web前端
-│   │   └── index.html  # 单页应用
+│   │   └── index.html  # 单页应用（渐进增强：有后端走真实API）
 │   └── cli.py          # 命令行入口
+├── sciflow_demo.html       # ★ 单文件参赛 Demo（零依赖，可静态部署）
+├── tests/                  # pytest 测试（48 个用例）
 ├── build_exe.py        # 打包脚本
 ├── run.py              # 开发启动器
 └── pyproject.toml
 ```
+
+## 🧪 测试
+
+```bash
+pip install -e ".[dev]"
+pytest           # 运行全部 48 个测试用例
+pytest -x        # 遇到第一个失败即停止
+```
+
+覆盖：配置管理、数据库 CRUD、文献生成/引用格式/arXiv 解析、8 步工作流、成果导出（Word/ZIP）。
 
 ## 📜 许可证
 
