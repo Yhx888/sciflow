@@ -24,6 +24,9 @@ build/
 .trae/
 .claude/
 
+# Pi agent
+.pi/sessions/
+
 # OS
 .DS_Store
 Thumbs.db

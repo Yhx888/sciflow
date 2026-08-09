@@ -19,7 +19,6 @@
 ## 项目结构
 
 ```
-c:\HOME\Project\Trae创意大赛/
 ├── sci_flow/                    # 核心代码目录
 │   ├── core/                    # 核心业务逻辑
 │   │   ├── config.py            # 配置管理
@@ -151,36 +150,20 @@ SciFlow将科研流程自动化为8个步骤：
 
 ---
 
-## 关键文件说明
-
-### [sci_flow/core/config.py](file:///C:/HOME/Project/Trae创意大赛/sci_flow/core/config.py)
-配置管理，支持图形界面、配置文件、环境变量三种方式。
-
-### [sci_flow/core/workflow.py](file:///C:/HOME/Project/Trae创意大赛/sci_flow/core/workflow.py)
-8步科研工作流引擎，串联所有业务环节。
-
-### [sci_flow/llm/client.py](file:///C:/HOME/Project/Trae创意大赛/sci_flow/llm/client.py)
-统一LLM客户端，自研多提供商适配（OpenAI兼容接口）。
-
-### [sci_flow/server/app.py](file:///C:/HOME/Project/Trae创意大赛/sci_flow/server/app.py)
-FastAPI后端，提供REST API和SSE流式响应。
-
-### [sci_flow/desktop/launcher.py](file:///C:/HOME/Project/Trae创意大赛/sci_flow/desktop/launcher.py)
-pywebview桌面应用启动器，原生窗口体验。
-
-### [sci_flow/web/index.html](file:///C:/HOME/Project/Trae创意大赛/sci_flow/web/index.html)
-单页Web前端，ChatGPT/苹果级精致UI。
-
-### [pyproject.toml](file:///C:/HOME/Project/Trae创意大赛/pyproject.toml)
-项目配置文件，定义依赖、入口点、构建方式。
-
----
-
 ## GitHub 仓库
 
 - **地址**: https://github.com/Yhx888/sciflow
 - **状态**: 公开仓库（Public）
 - **许可证**: MIT License
+
+---
+
+## 测试
+
+```bash
+pytest           # 运行所有测试
+pytest -x        # 遇到第一个失败即停止
+```
 
 ---
 
