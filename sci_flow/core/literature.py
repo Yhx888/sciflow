@@ -234,7 +234,23 @@ class LiteratureManager:
 
             title_pattern = random.choice(template["title_patterns"])
             title_topic = topic if topic else random.choice(template["topics"])
-            title = title_pattern.format(topic=title_topic, method=method)
+            # 部分学科模板含 {system}/{condition}/{product}/{material} 占位符，提供学科通用词
+            title = title_pattern.format(
+                topic=title_topic,
+                method=method,
+                system=random.choice(
+                    ["quantum system", "crystal lattice", "nanostructure", "heterostructure"]
+                ),
+                condition=random.choice(
+                    ["room temperature", "low temperature", "high pressure", "ultrafast timescales"]
+                ),
+                product=random.choice(
+                    ["nanoparticles", "high-performance catalysts", "novel compounds", "functional polymers"]
+                ),
+                material=random.choice(
+                    ["graphene", "perovskite", "metal-organic framework", "carbon nanotube", "MXene"]
+                ),
+            )
             if not topic:
                 pass
 

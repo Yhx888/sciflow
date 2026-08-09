@@ -19,6 +19,7 @@ from .generator import ResultGenerator, get_result_generator
 from .literature import LiteratureManager, get_literature_manager
 from .models import (
     Discipline,
+    ExperimentDesign,
     Literature,
     Project,
     ProjectStatus,
@@ -166,6 +167,7 @@ class WorkflowEngine:
         step_name = step.name
 
         step.start()
+        self.db.update_project(project)  # 持久化步骤状态，保证 get_workflow_status 与事件一致
         self._emit_event(
             WorkflowEvent(
                 event_type=WorkflowEventType.STEP_STARTED,
@@ -179,6 +181,7 @@ class WorkflowEngine:
         try:
             result = await self._execute_step(project, step_index, step_name, context)
             step.complete(result)
+            self.db.update_project(project)
             self._emit_event(
                 WorkflowEvent(
                     event_type=WorkflowEventType.STEP_COMPLETED,
@@ -193,6 +196,7 @@ class WorkflowEngine:
             return result
         except Exception as e:
             step.fail(str(e))
+            self.db.update_project(project)
             self._emit_event(
                 WorkflowEvent(
                     event_type=WorkflowEventType.STEP_ERROR,
@@ -584,6 +588,15 @@ class WorkflowEngine:
         project = self.create_workflow(project)
         context: Dict[str, Any] = {"project_id": project.id}
 
+        # 先注册运行状态，保证 STARTED 事件发出后即可取消/暂停
+        self._running_projects[project.id] = {
+            "project": project,
+            "context": context,
+            "current_step": start_step,
+            "paused": False,
+            "cancelled": False,
+        }
+
         self._emit_event(
             WorkflowEvent(
                 event_type=WorkflowEventType.WORKFLOW_STARTED,
@@ -596,14 +609,6 @@ class WorkflowEngine:
             project_id=project.id,
             message="工作流开始执行",
         )
-
-        self._running_projects[project.id] = {
-            "project": project,
-            "context": context,
-            "current_step": start_step,
-            "paused": False,
-            "cancelled": False,
-        }
 
         try:
             for step_index in range(start_step, len(WORKFLOW_STEPS)):
@@ -627,6 +632,15 @@ class WorkflowEngine:
 
                 step_result = await self.run_step(project, step_index, context)
                 context.update(step_result)
+
+                # 将关键成果写回项目，保证导出/查看接口可取到内容
+                if "outline" in step_result:
+                    project.outline = step_result["outline"]
+                if "experiments" in step_result:
+                    project.experiments = ExperimentDesign(**step_result["experiments"])
+                if "report" in step_result:
+                    project.report = step_result["report"]
+                self.db.update_project(project)
 
                 for callback in self._event_callbacks:
                     pass
