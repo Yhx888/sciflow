@@ -195,11 +195,13 @@ class LLMClient:
         Returns:
             流式模式返回AsyncGenerator，非流式返回完整字符串
         """
-        result = self.chat(messages, stream=stream, **kwargs)
         if stream:
-            return result
-        else:
-            return await result
+            # chat 是 async def，直接调用会得到协程而非异步生成器，
+            # 这里走底层实现保证返回真正的 AsyncGenerator
+            if self.use_mock:
+                return self._mock_stream_chat(messages)
+            return self._stream_chat(messages, **kwargs)
+        return await self.chat(messages, stream=False, **kwargs)
 
     async def achat_with_system_prompt(
         self,

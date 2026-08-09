@@ -2315,6 +2315,43 @@
                 localStorage.setItem('sciflow_settings', JSON.stringify({
                     theme: this.state.theme
                 }));
+                
+                // 后端可用时同步 AI 配置（渐进增强）
+                this.isBackendAvailable().then(available => {
+                    if (!available) return;
+                    const provider = document.getElementById('aiProvider')?.value;
+                    const apiKey = document.getElementById('apiKey')?.value;
+                    const apiBase = document.getElementById('apiBase')?.value;
+                    const model = document.getElementById('aiModel')?.value;
+                    const testResult = document.getElementById('testResult');
+                    if (testResult) {
+                        testResult.className = 'test-result';
+                        testResult.textContent = '正在保存配置...';
+                        testResult.style.display = 'block';
+                    }
+                    fetch('/api/config', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            theme: this.state.theme === 'auto' ? 'system' : this.state.theme,
+                            active_provider: provider,
+                            providers: provider ? [{ name: provider, api_key: apiKey, api_base: apiBase, model }] : []
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (testResult) {
+                            testResult.className = 'test-result ' + (data.success ? 'success' : 'error');
+                            testResult.textContent = data.success ? '✓ 配置已保存到后端' : '✗ ' + (data.detail || '保存失败');
+                        }
+                    })
+                    .catch(() => {
+                        if (testResult) {
+                            testResult.className = 'test-result error';
+                            testResult.textContent = '✗ 保存到后端失败';
+                        }
+                    });
+                });
             }
             
             applyTheme() {
@@ -2490,7 +2527,109 @@
                 input.value = '';
                 this.autoResize(input);
                 
-                this.simulateAIResponse(message);
+                this.isBackendAvailable().then(available => {
+                    if (available) {
+                        this.streamChatMessage(message);
+                    } else {
+                        this.simulateAIResponse(message);
+                    }
+                });
+            }
+            
+            /* ---- 后端接入（渐进增强：检测到 SciFlow 后端时启用真实 API） ---- */
+            async isBackendAvailable() {
+                if (this._backendChecked !== undefined) return this._backendChecked;
+                try {
+                    const res = await fetch('/api/config', { method: 'GET', headers: { 'Accept': 'application/json' } });
+                    this._backendChecked = res.ok;
+                } catch (e) {
+                    this._backendChecked = false;
+                }
+                return this._backendChecked;
+            }
+            
+            async streamChatMessage(message) {
+                this.state.isTyping = true;
+                document.getElementById('chatSendBtn').disabled = true;
+                
+                const messagesContainer = document.getElementById('chatMessages');
+                const msgEl = document.createElement('div');
+                msgEl.className = 'message assistant';
+                msgEl.innerHTML = `
+                    <div class="message-avatar">S</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-text"></div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(msgEl);
+                const textEl = msgEl.querySelector('.message-text');
+                
+                const typingEl = document.createElement('div');
+                typingEl.className = 'typing-indicator';
+                typingEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                textEl.appendChild(typingEl);
+                this.scrollToBottom();
+                
+                try {
+                    const res = await fetch('/api/chat/stream', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message, project_id: null })
+                    });
+                    if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+                    
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let full = '';
+                    let started = false;
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        // 规范化 CRLF（SSE 事件用 \r\n 分隔）
+                        const text = decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+                        const lines = text.split('\n');
+                        for (const line of lines) {
+                            if (!line.startsWith('data:')) continue;
+                            const payload = line.slice(5).trim();
+                            if (!payload) continue;
+                            let obj;
+                            try { obj = JSON.parse(payload); } catch (e) { continue; }
+                            if (obj.type === 'chunk' && obj.content) {
+                                if (!started) { typingEl.remove(); started = true; textEl.textContent = ''; }
+                                full += obj.content;
+                                textEl.textContent = full;
+                                this.scrollToBottom();
+                            } else if (obj.type === 'end') {
+                                if (!started) typingEl.remove();
+                                if (full) {
+                                    this.state.messages.push({ role: 'assistant', content: full });
+                                    textEl.innerHTML = this.renderMarkdown(full);
+                                }
+                                this.scrollToBottom();
+                            } else if (obj.error) {
+                                throw new Error(obj.error);
+                            }
+                        }
+                    }
+                    if (full) {
+                        this.state.messages.push({ role: 'assistant', content: full });
+                        textEl.innerHTML = this.renderMarkdown(full);
+                    } else if (!started) {
+                        typingEl.remove();
+                        textEl.textContent = '（后端未返回内容，请检查 API 配置）';
+                    }
+                } catch (e) {
+                    typingEl.remove();
+                    textEl.textContent = '⚠️ 后端对话失败（' + (e.message || e) + '），已切换演示引擎';
+                    this.state.messages.push({ role: 'assistant', content: '⚠️ 后端对话失败，已切换演示引擎' });
+                    setTimeout(() => { this.simulateAIResponse(message); }, 300);
+                } finally {
+                    this.state.isTyping = false;
+                    document.getElementById('chatSendBtn').disabled = false;
+                }
             }
             
             addUserMessage(content) {
@@ -3148,16 +3287,36 @@ config = {
                 resultEl.textContent = '测试中...';
                 resultEl.style.display = 'block';
                 
-                await this.sleep(1500);
-                
-                const success = Math.random() > 0.3;
-                
-                if (success) {
-                    resultEl.className = 'test-result success';
-                    resultEl.textContent = '✓ 连接成功！模型响应正常';
-                } else {
+                if (!(await this.isBackendAvailable())) {
+                    await this.sleep(800);
                     resultEl.className = 'test-result error';
-                    resultEl.textContent = '✗ 连接失败，请检查API Key和网络设置';
+                    resultEl.textContent = '✗ 未检测到 SciFlow 后端服务（当前为静态模式）。运行 python run.py 后可启用真实 API 测试';
+                    return;
+                }
+                
+                try {
+                    const res = await fetch('/api/config/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            provider: document.getElementById('aiProvider')?.value,
+                            api_key: document.getElementById('apiKey')?.value,
+                            api_base: document.getElementById('apiBase')?.value,
+                            model: document.getElementById('aiModel')?.value
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        resultEl.className = 'test-result success';
+                        const ms = data.data?.elapsed_ms ?? 0;
+                        resultEl.textContent = `✓ 连接成功！${data.data?.provider ?? ''} 响应 ${ms}ms`;
+                    } else {
+                        resultEl.className = 'test-result error';
+                        resultEl.textContent = '✗ ' + (data.message || '连接失败');
+                    }
+                } catch (e) {
+                    resultEl.className = 'test-result error';
+                    resultEl.textContent = '✗ 连接失败：' + (e.message || e);
                 }
             }
             
