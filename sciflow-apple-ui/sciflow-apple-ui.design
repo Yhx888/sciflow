@@ -1,0 +1,160 @@
+{
+  "data": [
+    {
+      "id": "page-welcome",
+      "type": "page",
+      "title": "欢迎首页",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 901,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-3cc6144d",
+          "measuredAt": 1785381120279
+        }
+      },
+      "interactions": [
+        {
+          "type": "navigation",
+          "domId": "welcome-send-btn",
+          "targetPageId": "page-workspace",
+          "description": "发送消息进入工作区"
+        }
+      ],
+      "devMetadata": {
+        "htmlSrc": "pages/welcome.html"
+      }
+    },
+    {
+      "id": "page-workspace",
+      "type": "page",
+      "title": "工作区对话",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 901,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-86d0a7f5",
+          "measuredAt": 1785381120279
+        }
+      },
+      "interactions": [
+        {
+          "type": "navigation",
+          "domId": "tab-literature",
+          "targetPageId": "page-literature",
+          "description": "切换到文献管理"
+        }
+      ],
+      "devMetadata": {
+        "htmlSrc": "pages/workspace.html"
+      }
+    },
+    {
+      "id": "page-literature",
+      "type": "page",
+      "title": "文献管理",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 1240,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 901,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-b0109724",
+          "measuredAt": 1785381120279
+        }
+      },
+      "interactions": [],
+      "devMetadata": {
+        "htmlSrc": "pages/literature.html"
+      }
+    },
+    {
+      "id": "image-001",
+      "type": "image",
+      "title": "SciFlow 应用图标",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 0,
+        "y": 377,
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/sciflow-app-icon.jpg"
+      }
+    },
+    {
+      "id": "image-002",
+      "type": "image",
+      "title": "科研主题插图",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 620,
+        "y": 377,
+        "naturalSize": {
+          "width": 1368,
+          "height": 768
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/hero-science-illustration.jpg"
+      }
+    },
+    {
+      "id": "image-003",
+      "type": "image",
+      "title": "用户头像集",
+      "version": 1,
+      "createdAt": 1751504000000,
+      "group": 0,
+      "canvasData": {
+        "x": 1240,
+        "y": 377,
+        "naturalSize": {
+          "width": 1368,
+          "height": 768
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/avatar-set.jpg"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "SciFlow 苹果风格 UI",
+    "designLibrary": {
+      "name": "苹果",
+      "id": "dl_builtin_apple",
+      "version": "",
+      "versionSource": null,
+      "scope": "reference",
+      "path": "c:\\Users\\YHX\\.trae-cn\\design_libraries\\dl_builtin_apple"
+    }
+  }
+}

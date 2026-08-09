@@ -1,0 +1,21 @@
+{
+  "project": {
+    "name": "SciFlow 苹果风格 UI",
+    "designSource": {
+      "libraryIdentity": {
+        "name": "苹果",
+        "id": "dl_builtin_apple",
+        "version": "",
+        "versionSource": null,
+        "scope": "reference",
+        "path": "c:\\Users\\YHX\\.trae-cn\\design_libraries\\dl_builtin_apple"
+      },
+      "styleConstraints": {
+        "radiusMax": 16,
+        "staticShadowAlphaMax": 0.05
+      }
+    },
+    "operatingMode": "library-bound",
+    "deviceType": "desktop"
+  }
+}
